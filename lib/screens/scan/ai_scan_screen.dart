@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme.dart';
@@ -10,7 +11,10 @@ class AiScanScreen extends StatefulWidget {
   State<AiScanScreen> createState() => _AiScanScreenState();
 }
 
-class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderStateMixin {
+class _AiScanScreenState extends State<AiScanScreen>
+    with SingleTickerProviderStateMixin {
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
   int _selectedCategoryIndex = 1; // 0: Organik, 1: Anorganik, 2: B3
   late AnimationController _animationController;
   late Animation<double> _scanLineAnimation;
@@ -63,15 +67,37 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    _initializeCamera();
     _animationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    _scanLineAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    _scanLineAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      _cameras = await availableCameras();
+      if (_cameras != null && _cameras!.isNotEmpty) {
+        _cameraController = CameraController(
+          _cameras![0],
+          ResolutionPreset.medium,
+          enableAudio: false,
+        );
+        await _cameraController!.initialize();
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    } catch (e) {
+      // Ignore initialization errors for now.
+    }
   }
 
   @override
   void dispose() {
+    _cameraController?.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -89,23 +115,29 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
           children: [
             // Top Camera Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: AppTheme.primaryGreen, size: 28),
+                    icon: const Icon(Icons.close_rounded,
+                        color: AppTheme.primaryGreen, size: 28),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const Expanded(
                     child: Center(
                       child: Text(
                         'AI Scan Trash',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryGreen),
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.flash_on_rounded, color: AppTheme.primaryGreen, size: 22),
+                    icon: const Icon(Icons.flash_on_rounded,
+                        color: AppTheme.primaryGreen, size: 22),
                     onPressed: () {},
                   ),
                 ],
@@ -124,30 +156,34 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Mock Camera Background Image
+                    // Live camera preview
                     Positioned.fill(
-                      child: Opacity(
-                        opacity: 0.7,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: Image.network(
-                            'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=500&q=80',
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: _cameraController == null ||
+                                !_cameraController!.value.isInitialized
+                            ? Container(
+                                color: Colors.black87,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                      color: AppTheme.primaryGreen),
+                                ),
+                              )
+                            : CameraPreview(_cameraController!),
                       ),
                     ),
-                    
+
                     // Scanning target overlay bounds
                     Container(
                       width: 220,
                       height: 220,
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.white.withOpacity(0.8), width: 3),
+                        border: Border.all(
+                            color: Colors.white.withOpacity(0.8), width: 3),
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    
+
                     // Animated scanning line
                     AnimatedBuilder(
                       animation: _scanLineAnimation,
@@ -171,13 +207,16 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                         );
                       },
                     ),
-                    
+
                     // UI Hint
                     const Positioned(
                       bottom: 20,
                       child: Text(
                         'Posisikan objek di tengah bingkai',
-                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
@@ -195,12 +234,14 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                   final isSelected = index == _selectedCategoryIndex;
                   return Expanded(
                     child: GestureDetector(
-                      onTap: () => setState(() => _selectedCategoryIndex = index),
+                      onTap: () =>
+                          setState(() => _selectedCategoryIndex = index),
                       child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppTheme.primaryGreen : Colors.white,
+                          color:
+                              isSelected ? AppTheme.primaryGreen : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(color: Colors.grey.shade200),
                         ),
@@ -208,7 +249,8 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                           _categories[index],
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : AppTheme.textLight,
+                            color:
+                                isSelected ? Colors.white : AppTheme.textLight,
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
                           ),
@@ -244,7 +286,8 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                             children: [
                               const Text(
                                 'AI Result',
-                                style: TextStyle(color: AppTheme.textLight, fontSize: 12),
+                                style: TextStyle(
+                                    color: AppTheme.textLight, fontSize: 12),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -259,14 +302,18 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                             ],
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEFF7F2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               result['accuracy'] as String,
-                              style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 11),
+                              style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11),
                             ),
                           ),
                         ],
@@ -286,9 +333,16 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('CO2 Dicegah', style: TextStyle(color: AppTheme.textLight, fontSize: 11)),
+                                  const Text('CO2 Dicegah',
+                                      style: TextStyle(
+                                          color: AppTheme.textLight,
+                                          fontSize: 11)),
                                   const SizedBox(height: 4),
-                                  Text(result['co2'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryGreen)),
+                                  Text(result['co2'] as String,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: AppTheme.primaryGreen)),
                                 ],
                               ),
                             ),
@@ -304,9 +358,16 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Poin Didapat', style: TextStyle(color: AppTheme.textLight, fontSize: 11)),
+                                  const Text('Poin Didapat',
+                                      style: TextStyle(
+                                          color: AppTheme.textLight,
+                                          fontSize: 11)),
                                   const SizedBox(height: 4),
-                                  Text('+${result['points']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.green)),
+                                  Text('+${result['points']}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: Colors.green)),
                                 ],
                               ),
                             ),
@@ -318,11 +379,15 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                       // Handling/Steps Section
                       const Text(
                         'Cara Penanganan',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primaryGreen),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: AppTheme.primaryGreen),
                       ),
                       const SizedBox(height: 12),
                       Column(
-                        children: List.generate((result['instructions'] as List).length, (idx) {
+                        children: List.generate(
+                            (result['instructions'] as List).length, (idx) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 8.0),
                             child: Row(
@@ -331,13 +396,20 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                                 CircleAvatar(
                                   radius: 9,
                                   backgroundColor: AppTheme.mintGreen,
-                                  child: Text('${idx + 1}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  child: Text('${idx + 1}',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold)),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     (result['instructions'] as List)[idx],
-                                    style: const TextStyle(fontSize: 12, color: AppTheme.textDark, height: 1.4),
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textDark,
+                                        height: 1.4),
                                   ),
                                 ),
                               ],
@@ -354,7 +426,8 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
 
             // Submit Buttons
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -363,13 +436,17 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                       // Save points to State
                       appState.simulateAiScanResult(
                         _categories[_selectedCategoryIndex],
-                        _selectedCategoryIndex == 0 ? 0.8 : (_selectedCategoryIndex == 1 ? 2.5 : 0.5),
+                        _selectedCategoryIndex == 0
+                            ? 0.8
+                            : (_selectedCategoryIndex == 1 ? 2.5 : 0.5),
                         result['points'] as int,
                       );
-                      
+
                       // Notify user
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Setoran sampah ${result['name']} sukses! +${result['points']} Poin ditambahkan.')),
+                        SnackBar(
+                            content: Text(
+                                'Setoran sampah ${result['name']} sukses! +${result['points']} Poin ditambahkan.')),
                       );
                       Navigator.pop(context);
                     },
@@ -388,7 +465,10 @@ class _AiScanScreenState extends State<AiScanScreen> with SingleTickerProviderSt
                       onPressed: () {},
                       child: const Text(
                         'Hasil kurang tepat? Koreksi manual',
-                        style: TextStyle(color: AppTheme.textLight, fontSize: 12, decoration: TextDecoration.underline),
+                        style: TextStyle(
+                            color: AppTheme.textLight,
+                            fontSize: 12,
+                            decoration: TextDecoration.underline),
                       ),
                     ),
                   ),

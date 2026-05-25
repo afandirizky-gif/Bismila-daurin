@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
-import '../../widgets/daurin_logo.dart';
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -17,7 +16,12 @@ class SplashScreen extends StatelessWidget {
             children: [
               const Spacer(flex: 3),
               // Logo
-              const DaurinLogo(size: 150, fontSize: 36),
+              Image.asset(
+                'assets/logo.png',
+                width: 220,
+                height: 220,
+                fit: BoxFit.contain,
+              ),
               const SizedBox(height: 32),
               // Slogan
               Padding(
