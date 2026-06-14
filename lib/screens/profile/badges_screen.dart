@@ -56,12 +56,16 @@ class BadgesScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Collection Progress',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16),
                           ),
                           SizedBox(height: 4),
                           Text(
                             'Keep collecting badges!',
-                            style: TextStyle(color: Colors.white70, fontSize: 12),
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 12),
                           ),
                         ],
                       ),
@@ -70,11 +74,15 @@ class BadgesScreen extends StatelessWidget {
                         children: [
                           Text(
                             '$unlockedCount/$totalBadges',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24),
                           ),
                           Text(
                             '${(progressPercent * 100).toInt()}% complete',
-                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 11),
                           ),
                         ],
                       ),
@@ -93,7 +101,7 @@ class BadgesScreen extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Grid of Badges
             Expanded(
               child: GridView.builder(
@@ -108,7 +116,7 @@ class BadgesScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final badge = badgesList[index];
                   final fraction = badge.currentProgress / badge.totalGoal;
-                  
+
                   return Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -127,7 +135,8 @@ class BadgesScreen extends StatelessWidget {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: _getPeriodColor(badge.period),
                               borderRadius: BorderRadius.circular(12),
@@ -147,12 +156,16 @@ class BadgesScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: badge.isUnlocked ? AppTheme.lightMint : Colors.grey.shade100,
+                            color: badge.isUnlocked
+                                ? AppTheme.lightMint
+                                : Colors.grey.shade100,
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.emoji_events_rounded,
-                            color: badge.isUnlocked ? AppTheme.mintGreen : Colors.grey.shade400,
+                            color: badge.isUnlocked
+                                ? AppTheme.mintGreen
+                                : Colors.grey.shade400,
                             size: 32,
                           ),
                         ),
@@ -166,7 +179,9 @@ class BadgesScreen extends StatelessWidget {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
-                            color: badge.isUnlocked ? AppTheme.primaryGreen : AppTheme.textLight,
+                            color: badge.isUnlocked
+                                ? AppTheme.primaryGreen
+                                : AppTheme.textLight,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -179,7 +194,9 @@ class BadgesScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: badge.isUnlocked ? AppTheme.primaryGreen : AppTheme.textLight,
+                                color: badge.isUnlocked
+                                    ? AppTheme.primaryGreen
+                                    : AppTheme.textLight,
                               ),
                             ),
                             Text(
@@ -187,7 +204,9 @@ class BadgesScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: badge.isUnlocked ? AppTheme.mintGreen : AppTheme.textLight,
+                                color: badge.isUnlocked
+                                    ? AppTheme.mintGreen
+                                    : AppTheme.textLight,
                               ),
                             ),
                           ],
@@ -198,7 +217,9 @@ class BadgesScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             value: fraction,
-                            color: badge.isUnlocked ? AppTheme.mintGreen : Colors.grey.shade300,
+                            color: badge.isUnlocked
+                                ? AppTheme.mintGreen
+                                : Colors.grey.shade300,
                             backgroundColor: Colors.grey.shade100,
                             minHeight: 5,
                           ),
