@@ -142,6 +142,15 @@ class AppState extends ChangeNotifier {
   File? _profileImage;
   File? get profileImage => _profileImage;
 
+  int _viewIndex = 0; // Pastikan variabel penampung index ini ada
+    int get viewIndex => _viewIndex;
+
+    // TAMBAHKAN FUNGSI INI:
+    void setIndex(int index) {
+      _viewIndex = index;
+      notifyListeners(); // Wajib agar tampilan (UI) tahu ada perubahan!
+    }
+
   void updateProfileImage(File newImage) {
     _profileImage = newImage;
     notifyListeners();
@@ -165,6 +174,7 @@ class AppState extends ChangeNotifier {
   String _referralCode = 'PUTRA24';
   int _friendsInvitedCount = 8;
   int _bonusPointsEarned = 1600;
+
 
   // Getters
   String get userName => _userName;
@@ -537,4 +547,5 @@ class AppState extends ChangeNotifier {
         ));
     notifyListeners();
   }
+  
 }

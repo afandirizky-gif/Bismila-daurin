@@ -4,6 +4,7 @@ import '../theme.dart';
 import '../state/app_state.dart';
 import 'scan/ai_scan_screen.dart';
 
+
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
 
@@ -377,6 +378,7 @@ class HomeTab extends StatelessWidget {
                   side: const BorderSide(color: AppTheme.primaryGreen),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  
                 ),
               ),
               const SizedBox(height: 10),
