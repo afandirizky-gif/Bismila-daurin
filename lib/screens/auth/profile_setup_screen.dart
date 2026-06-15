@@ -18,13 +18,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _referralController = TextEditingController();
 
-
   String? _selectedDomisili;
   String? _selectedGender;
-  
+
   final ImagePicker _picker = ImagePicker();
   File? _selectedImage;
-  
+
   final List<String> _domisiliList = [
     'Batam',
     'Jakarta',
@@ -79,8 +78,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return months[month - 1];
   }
 
- Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _pickImage() async {
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _selectedImage = File(pickedFile.path);

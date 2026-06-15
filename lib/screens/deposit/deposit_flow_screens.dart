@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme.dart';
 import '../../state/app_state.dart';
+import '../../widgets/map_view.dart';
 
 class SetorSampahScreen extends StatefulWidget {
   const SetorSampahScreen({super.key});
@@ -97,6 +98,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
     }
   }
 
+
+
   // --- 0. Choice View (Page 20) ---
   Widget _buildChoiceView(AppState state) {
     return ListView(
@@ -130,16 +133,21 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
               ),
             ),
             const SizedBox(width: 16),
-            Expanded(
-              child: _choiceCard(
-                icon: Icons.location_on_rounded,
-                title: 'Drop Point',
-                desc: 'Setor mandiri di stasiun',
-                onTap: () => setState(() => _viewIndex = 1),
-              ),
+           Expanded(
+                  child: _choiceCard(
+                    icon: Icons.map_rounded, // Ikon peta
+                    title: 'Drop Point',
+                    desc: 'Antar ke lokasi terdekat',
+                    onTap: () {
+                      setState(() {
+                        _viewIndex = 1; // Pindah ke case 1 (Peta Drop Point)
+                      });
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+
         const SizedBox(height: 36),
 
         // Recent Deposits
@@ -362,20 +370,16 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                   ),
                 ),
                 // Floating target button
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: FloatingActionButton.small(
-                    onPressed: () {},
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppTheme.primaryGreen,
-                    child: const Icon(Icons.my_location_rounded),
-                  ),
+                            Positioned.fill(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: DropPointMap(dropPoints: dropPoints),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
 
         // Drop Points List
         Container(
