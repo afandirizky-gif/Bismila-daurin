@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Selamat Datang\nKembali',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 32,
+                        fontSize: 40,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.primaryGreen,
                         height: 1.2,
@@ -43,7 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Lanjutkan aksi hijaumu hari ini.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textLight,
+                        color: const Color.fromARGB(255, 36, 34, 34),
+                        height: 1.5,
+                        fontSize: 12,
                       ),
                 ),
                 const SizedBox(height: 48),
@@ -197,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'atau masuk dengan',
                         style: TextStyle(
-                          color: AppTheme.textLight,
+                          color: const Color.fromARGB(255, 29, 26, 26),
                           fontSize: 12,
                         ),
                       ),
@@ -257,7 +259,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       'Belum punya akun? ',
-                      style: TextStyle(color: AppTheme.textLight, fontSize: 14),
+                      style: TextStyle(color: const Color.fromARGB(255, 33, 29, 29), fontSize: 14),
                     ),
                     GestureDetector(
                       onTap: () {
