@@ -367,9 +367,11 @@ class HomeTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              // Cari Drop point button
+
               OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, '/deposit'); 
+                },
                 icon: const Icon(Icons.map_rounded, size: 20),
                 label: const Text('Cari Drop Point Terdekat'),
                 style: OutlinedButton.styleFrom(
