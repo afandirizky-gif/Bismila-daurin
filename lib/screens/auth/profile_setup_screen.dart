@@ -267,9 +267,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         name: appState.userName, // Keep default name or update
                         email: appState.userEmail,
                         phone: appState.userPhone,
-                        dob: _dobController.text,
+                        // dob: _dobController.text,
                         domisili: _selectedDomisili ?? '',
-                        gender: _selectedGender ?? '',
+                        // gender: _selectedGender ?? '',
                       );
                       // Navigate to onboarding tour
                       Navigator.pushNamedAndRemoveUntil(context, '/onboarding', (route) => false);

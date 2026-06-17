@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme.dart';
+import '../../services/auth_service.dart';
+import '../../state/app_state.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -155,9 +158,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Sign Up Button
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate() && _agreeToTerms) {
-                      Navigator.pushNamed(context, '/otp');
+                      final data = {
+                        'fullName': _usernameController.text.trim(),
+                        'email': _emailController.text.trim(),
+                        'password': _passwordController.text.trim(),
+                        'phone': _phoneController.text.trim(),
+                        'address': '-', // Dummy address for now
+                      };
+
+                      final result = await AuthService.register(data);
+                      if (!mounted) return;
+
+                      if (result['success']) {
+                        final user = result['user'];
+                        Provider.of<AppState>(context, listen: false).setUserData(user);
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/main_frame',
+                          (route) => false,
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(result['message'])),
+                        );
+                      }
                     } else if (!_agreeToTerms) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Anda harus menyetujui Syarat & Ketentuan')),

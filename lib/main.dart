@@ -37,7 +37,7 @@ class DaurinApp extends StatelessWidget {
         '/': (context) => const SplashScreen(),
         '/welcome': (context) => const WelcomeScreen(),
         '/onboarding': (context) => const OnboardingScreens(),
-        '/login': (context) => const LoginScreen(),
+        '/login': (context) => LoginScreen(),
         '/register': (context) => const RegisterScreen(),
         '/otp': (context) => const OtpScreen(),
         '/profile_setup': (context) => const ProfileSetupScreen(),

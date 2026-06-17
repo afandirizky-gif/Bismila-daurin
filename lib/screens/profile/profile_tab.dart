@@ -109,7 +109,7 @@ class ProfileTab extends StatelessWidget {
                       const SizedBox(width: 10),
                       _statCard(context, '${appState.streakCount}', 'hari streak', Icons.local_fire_department_rounded, AppTheme.accentGold),
                       const SizedBox(width: 10),
-                      _statCard(context, '${appState.totalDepositsCount}', 'total stor', Icons.inventory_2_rounded, AppTheme.primaryGreen),
+                      _statCard(context, '${appState.totalWeightKg} kg', 'total berat', Icons.inventory_2_rounded, AppTheme.primaryGreen),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -156,13 +156,13 @@ class ProfileTab extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Highlights (4 pohon, 230L air, 18kwh saved)
+                  // Highlights (Environmental Impact)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _highlightPill('4 pohon', Icons.forest_rounded),
-                      _highlightPill('230L air', Icons.water_drop_rounded),
-                      _highlightPill('18kwh', Icons.bolt_rounded),
+                      _highlightPill('${appState.treesSaved} pohon', Icons.forest_rounded),
+                      _highlightPill('${appState.waterSavedLiters}L air', Icons.water_drop_rounded),
+                      _highlightPill('${appState.energySavedKwh}kwh', Icons.bolt_rounded),
                     ],
                   ),
                   const SizedBox(height: 24),
