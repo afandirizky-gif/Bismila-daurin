@@ -178,14 +178,13 @@ class _ChallengeTabState extends State<ChallengeTab> {
         ),
         const SizedBox(height: 20),
 
-        // Shortcuts Row (Badges & Leaderboard)
         Row(
           children: [
             Expanded(
               child: _shortcutCard(
                 icon: Icons.emoji_events_outlined,
-                title: 'Badges',
-                subtitle: 'Collection',
+                title: 'lencana',
+                subtitle: 'Koleksi',
                 onTap: () => Navigator.pushNamed(context, '/badges'),
               ),
             ),
@@ -193,7 +192,7 @@ class _ChallengeTabState extends State<ChallengeTab> {
             Expanded(
               child: _shortcutCard(
                 icon: Icons.leaderboard_outlined,
-                title: 'Leaderboard',
+                title: 'papan peringkat',
                 subtitle: 'Global',
                 onTap: () => Navigator.pushNamed(context, '/leaderboard'),
               ),

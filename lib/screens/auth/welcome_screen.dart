@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme.dart';
+import 'package:flutter/gestures.dart';
+import 'terms_and_conditions_screen.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -15,8 +17,7 @@ class WelcomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(flex: 2),
-              
-              // App Logo & Graphic Illustration
+
               Center(
                 child: Container(
                   height: 240,
@@ -26,42 +27,42 @@ class WelcomeScreen extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   child: Center(
-                    child: Icon(
-                      Icons.recycling_rounded,
-                      color: AppTheme.primaryGreen,
-                      size: 120,
+                    child: Image.asset(
+                      'assets/logo_a.png',
+                      width: 180,
+                      height: 180,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 ),
               ),
-              
+
               const Spacer(flex: 1),
 
               // Title Header
               Text(
-                'Daurin',
+                'Mulai Perjalanan\nHijau-mu',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontSize: 48,
+                      fontSize: 43,
                       fontWeight: FontWeight.w900,
                       color: AppTheme.primaryGreen,
                       fontFamily: 'Outfit',
                       letterSpacing: -1.0,
                     ),
               ),
-              const SizedBox(height: 12),
-              
-              // Subtext
+              const SizedBox(height: 14),
+
               Text(
-                'Ubah Aksi Hijaumu Menjadi\nRewards Berharga',
+                'Pilah sampah lebih mudah, dapat reward nyata,\ndan lihat dampakmu bagi bumi',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppTheme.textLight,
+                      color: const Color.fromARGB(255, 0, 0, 0),
                       height: 1.5,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
                     ),
               ),
-              
+
               const Spacer(flex: 2),
 
               // Sign In Button
@@ -72,7 +73,7 @@ class WelcomeScreen extends StatelessWidget {
                 child: const Text('Masuk Ke Akun'),
               ),
               const SizedBox(height: 12),
-              
+
               // Sign Up Button
               OutlinedButton(
                 onPressed: () {
@@ -80,16 +81,47 @@ class WelcomeScreen extends StatelessWidget {
                 },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.primaryGreen,
-                  side: const BorderSide(color: AppTheme.primaryGreen, width: 2),
+                  side:
+                      const BorderSide(color: AppTheme.primaryGreen, width: 2),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                 ),
                 child: const Text(
                   'Daftar Gratis',
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
+
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: TextStyle(
+                      color: const Color.fromARGB(255, 26, 25, 25),
+                      fontSize: 14),
+                  children: [
+                    TextSpan(text: "Dengan mendaftar, kamu menyetujui "),
+                    TextSpan(
+                      text: "Syarat & Ketentuan",
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontSize: 16,
+                        decoration: TextDecoration.underline,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    TermsAndConditionsScreen()),
+                          );
+                        },
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
+import 'dart:io';
 
 class ScheduledPickup {
   final String id;
@@ -159,6 +160,23 @@ class LeaderboardUser {
 
 class AppState extends ChangeNotifier {
   // User Profile State
+  File? _profileImage;
+  File? get profileImage => _profileImage;
+
+  int _viewIndex = 0; // Pastikan variabel penampung index ini ada
+    int get viewIndex => _viewIndex;
+
+    // TAMBAHKAN FUNGSI INI:
+    void setIndex(int index) {
+      _viewIndex = index;
+      notifyListeners(); // Wajib agar tampilan (UI) tahu ada perubahan!
+    }
+
+  void updateProfileImage(File newImage) {
+    _profileImage = newImage;
+    notifyListeners();
+  }
+
   String _userName = 'Putra Pratama';
   String _userLevel = '5';
   double _levelProgress = 0.65; // progress bar value 0.0 - 1.0
@@ -650,12 +668,36 @@ class AppState extends ChangeNotifier {
 
   // Transaction Ledger (mock points transactions)
   final List<TransactionHistory> _transactions = [
-    TransactionHistory(title: 'Tukar 500 poin ke Gopay', type: 'debit', points: 500, date: DateTime(2025, 3, 29)),
-    TransactionHistory(title: 'Tukar 300 poin ke Ovo', type: 'debit', points: 300, date: DateTime(2025, 3, 29)),
-    TransactionHistory(title: 'Bonus Referral dari Ahmad', type: 'credit', points: 200, date: DateTime(2025, 3, 29)),
-    TransactionHistory(title: 'Tukar 500 poin ke Gopay', type: 'debit', points: 500, date: DateTime(2025, 2, 29)),
-    TransactionHistory(title: 'Tukar 300 poin ke Ovo', type: 'debit', points: 300, date: DateTime(2025, 2, 29)),
-    TransactionHistory(title: 'Bonus Referral dari Ahmad', type: 'credit', points: 200, date: DateTime(2025, 2, 29)),
+    TransactionHistory(
+        title: 'Tukar 500 poin ke Gopay',
+        type: 'debit',
+        points: 500,
+        date: DateTime(2025, 3, 29)),
+    TransactionHistory(
+        title: 'Tukar 300 poin ke Ovo',
+        type: 'debit',
+        points: 300,
+        date: DateTime(2025, 3, 29)),
+    TransactionHistory(
+        title: 'Bonus Referral dari Ahmad',
+        type: 'credit',
+        points: 200,
+        date: DateTime(2025, 3, 29)),
+    TransactionHistory(
+        title: 'Tukar 500 poin ke Gopay',
+        type: 'debit',
+        points: 500,
+        date: DateTime(2025, 2, 29)),
+    TransactionHistory(
+        title: 'Tukar 300 poin ke Ovo',
+        type: 'debit',
+        points: 300,
+        date: DateTime(2025, 2, 29)),
+    TransactionHistory(
+        title: 'Bonus Referral dari Ahmad',
+        type: 'credit',
+        points: 200,
+        date: DateTime(2025, 2, 29)),
   ];
 
   List<TransactionHistory> get transactions => _transactions;
@@ -688,18 +730,90 @@ class AppState extends ChangeNotifier {
 
   // Badges list
   final List<BadgeItem> _badges = [
-    BadgeItem(title: 'Use a reusable bag', description: 'Bring bags to shopping', currentProgress: 5, totalGoal: 5, period: 'DAY', isUnlocked: true),
-    BadgeItem(title: 'Bike to work', description: 'Ride bicycle to work', currentProgress: 3, totalGoal: 3, period: 'WEEK', isUnlocked: true),
-    BadgeItem(title: 'Avoid single-use straws', description: 'No plastic straws', currentProgress: 7, totalGoal: 7, period: 'WEEK', isUnlocked: true),
-    BadgeItem(title: 'Compost food scraps', description: 'Compost composting', currentProgress: 2, totalGoal: 2, period: 'DAY', isUnlocked: true),
-    BadgeItem(title: 'Turn off unused lights', description: 'Save electricity', currentProgress: 8, totalGoal: 8, period: 'DAY', isUnlocked: true),
-    BadgeItem(title: 'Use refillable water bottle', description: 'Zero plastic bottles', currentProgress: 4, totalGoal: 4, period: 'DAY', isUnlocked: true),
-    BadgeItem(title: 'Print double-sided', description: 'Save paper sheets', currentProgress: 6, totalGoal: 6, period: 'WEEK', isUnlocked: true),
-    BadgeItem(title: 'Donate old clothes', description: 'Reuse old outfits', currentProgress: 1, totalGoal: 1, period: 'MONTH', isUnlocked: true),
-    BadgeItem(title: 'Buy local produce', description: 'Support local farms', currentProgress: 9, totalGoal: 9, period: 'WEEK', isUnlocked: true),
-    BadgeItem(title: 'Avoid plastic utensils', description: 'Use stainless cutlery', currentProgress: 3, totalGoal: 3, period: 'DAY', isUnlocked: true),
-    BadgeItem(title: 'Fix leaky faucets', description: 'Save household water', currentProgress: 2, totalGoal: 2, period: 'MONTH', isUnlocked: true),
-    BadgeItem(title: 'Use energy-efficient bulbs', description: 'Replace incandescent', currentProgress: 5, totalGoal: 5, period: 'WEEK', isUnlocked: true),
+    BadgeItem(
+        title: 'Bawa tas belanja sendiri',
+        description: 'Bawa tas belanja saat berbelanja',
+        currentProgress: 5,
+        totalGoal: 5,
+        period: 'Hari',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Bersepeda ke tempat kerja',
+        description: 'Gunakan sepeda untuk pergi ke tempat kerja selama 5 hari berturut-turut.',
+        currentProgress: 3,
+        totalGoal: 3,
+        period: 'Pekan',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Hindari sedotan plastik',
+        description: 'Tolak sedotan plastik dan gunakan alternatif ramah lingkungan',
+        currentProgress: 7,
+        totalGoal: 7,
+        period: 'Pekan',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Mulai Kompos sisa makanan',
+        description: 'Buat kompos dari sisa makanan rumah tangga',
+        currentProgress: 2,
+        totalGoal: 2,
+        period: 'Hari',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Hemat Listrik',
+        description: 'Matikan lampu yang tidak digunakan untuk menghemat Listrik',
+        currentProgress: 8,
+        totalGoal: 8,
+        period: 'Hari',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Gunakan botol air isi ulang',
+        description: 'Gunakan botol air yang bisa diisi ulang ',
+        currentProgress: 4,
+        totalGoal: 4,
+        period: 'Hari',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Kurangi penggunaan kertas',
+        description: 'Gunakan dokumen digital dan hindari mencetak dokumen yang tidak perlu',
+        currentProgress: 6,
+        totalGoal: 6,
+        period: 'Pekan',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Gunakan pakaian',
+        description: 'Gunakan pakaian yang ramah lingkungan dan hindari fast fashion',
+        currentProgress: 1,
+        totalGoal: 1,
+        period: 'Bulan',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Dukung pertanian lokal',
+        description: 'Dukung petani lokal',
+        currentProgress: 9,
+        totalGoal: 9,
+        period: 'Pekan',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Hindari peralatan makan plastik',
+        description: 'Gunakan peralatan makan dari stainless steel',
+        currentProgress: 3,
+        totalGoal: 3,
+        period: 'Hari',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Hemat air',
+        description: 'Hindari pemborosan air di rumah',
+        currentProgress: 2,
+        totalGoal: 2,
+        period: 'Bulan',
+        isUnlocked: true),
+    BadgeItem(
+        title: 'Kurangi penggunaan lampu neon',
+        description: 'Gunakan lampu LED yang lebih hemat energi',
+        currentProgress: 5,
+        totalGoal: 5,
+        period: 'Pekan',
+        isUnlocked: true),
   ];
 
   List<BadgeItem> get badges => _badges;
@@ -707,16 +821,26 @@ class AppState extends ChangeNotifier {
 
   // Leaderboard data
   final List<LeaderboardUser> _leaderboardUsers = [
-    LeaderboardUser(name: 'ery', points: 2450, streak: 12, rank: 1, change: '0'),
-    LeaderboardUser(name: 'Andi', points: 2120, streak: 8, rank: 2, change: '+10'),
-    LeaderboardUser(name: 'gui lee', points: 1890, streak: 15, rank: 3, change: '-5'),
-    LeaderboardUser(name: 'Elara', points: 1820, streak: 7, rank: 4, change: '+60'),
-    LeaderboardUser(name: 'Kian', points: 1740, streak: 6, rank: 5, change: '+60'),
-    LeaderboardUser(name: 'Soren', points: 1680, streak: 5, rank: 6, change: '+60'),
-    LeaderboardUser(name: 'Lyra', points: 1600, streak: 4, rank: 7, change: '+60'),
-    LeaderboardUser(name: 'Orin', points: 1550, streak: 3, rank: 8, change: '+60'),
-    LeaderboardUser(name: 'Mirael', points: 1480, streak: 2, rank: 9, change: '+60'),
-    LeaderboardUser(name: 'Zane', points: 1400, streak: 1, rank: 10, change: '+60'),
+    LeaderboardUser(
+        name: 'Irhan', points: 2450, streak: 12, rank: 1, change: '0'),
+    LeaderboardUser(
+        name: 'Dance', points: 2120, streak: 8, rank: 2, change: '+10'),
+    LeaderboardUser(
+        name: 'Zahra', points: 1890, streak: 15, rank: 3, change: '-5'),
+    LeaderboardUser(
+        name: 'Selvi', points: 1820, streak: 7, rank: 4, change: '+60'),
+    LeaderboardUser(
+        name: 'Rizky', points: 1740, streak: 6, rank: 5, change: '+60'),
+    LeaderboardUser(
+        name: 'Grace', points: 1680, streak: 5, rank: 6, change: '+60'),
+    LeaderboardUser(
+        name: 'Lutfi', points: 1600, streak: 4, rank: 7, change: '+60'),
+    LeaderboardUser(
+        name: 'Dery', points: 1550, streak: 3, rank: 8, change: '+60'),
+    LeaderboardUser(
+        name: 'Kevin', points: 1480, streak: 2, rank: 9, change: '+60'),
+    LeaderboardUser(
+        name: 'Akbar', points: 1400, streak: 1, rank: 10, change: '+60'),
   ];
 
   List<LeaderboardUser> get leaderboardUsers => _leaderboardUsers;
@@ -726,17 +850,22 @@ class AppState extends ChangeNotifier {
     _totalPoints += pointsGained;
     _pointsThisWeek += pointsGained;
     _co2Prevented += (weight * 0.12); // Mock CO2 calculation
-    _recentDeposits.insert(0, DepositHistory(
-      type: type,
-      weight: weight,
-      relativeTime: 'Today',
-    ));
-    _transactions.insert(0, TransactionHistory(
-      title: 'Scan Sampah: $type ($weight kg)',
-      type: 'credit',
-      points: pointsGained,
-      date: DateTime.now(),
-    ));
+    _recentDeposits.insert(
+        0,
+        DepositHistory(
+          type: type,
+          weight: weight,
+          relativeTime: 'Today',
+        ));
+    _transactions.insert(
+        0,
+        TransactionHistory(
+          title: 'Scan Sampah: $type ($weight kg)',
+          type: 'credit',
+          points: pointsGained,
+          date: DateTime.now(),
+        ));
     notifyListeners();
   }
+  
 }

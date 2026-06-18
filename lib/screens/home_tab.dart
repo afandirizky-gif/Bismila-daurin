@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../state/app_state.dart';
 import 'scan/ai_scan_screen.dart';
+import 'deposit/deposit_flow_screens.dart';
+import 'package:latlong2/latlong.dart';
+
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
@@ -374,7 +377,7 @@ class HomeTab extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              // Cari Drop point button
+
               OutlinedButton.icon(
                 onPressed: () {
                   appState.navigateToTab(0, depositViewIndex: 1); // 0 = Deposit Tab, 1 = Map View

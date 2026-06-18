@@ -36,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Selamat Datang\nKembali',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 32,
+                        fontSize: 40,
                         fontWeight: FontWeight.w800,
                         color: AppTheme.primaryGreen,
                         height: 1.2,
@@ -46,7 +46,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'Lanjutkan aksi hijaumu hari ini.',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textLight,
+                        color: const Color.fromARGB(255, 36, 34, 34),
+                        height: 1.5,
+                        fontSize: 12,
                       ),
                 ),
                 const SizedBox(height: 48),
@@ -67,7 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     hintText: 'Masukkan Email / no',
                     fillColor: Colors.white,
                     filled: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey.shade300),
@@ -103,10 +106,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     hintText: 'Masukkan Password',
                     fillColor: Colors.white,
                     filled: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        _obscurePassword
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
                         color: AppTheme.textLight,
                       ),
                       onPressed: () {
@@ -210,7 +216,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'atau masuk dengan',
                         style: TextStyle(
-                          color: AppTheme.textLight,
+                          color: const Color.fromARGB(255, 29, 26, 26),
                           fontSize: 12,
                         ),
                       ),
@@ -226,15 +232,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(context, '/main_frame', (route) => false);
+                          Navigator.pushNamedAndRemoveUntil(
+                              context, '/main_frame', (route) => false);
                         },
-                        icon: const Icon(Icons.g_mobiledata_rounded, color: Colors.red, size: 28),
+                        icon: const Icon(Icons.g_mobiledata_rounded,
+                            color: Colors.red, size: 28),
                         label: const Text('Google'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppTheme.textDark,
                           side: BorderSide(color: Colors.grey.shade300),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -242,15 +251,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          Navigator.pushNamedAndRemoveUntil(context, '/main_frame', (route) => false);
+                          Navigator.pushNamedAndRemoveUntil(
+                              context, '/main_frame', (route) => false);
                         },
-                        icon: const Icon(Icons.facebook_rounded, color: Colors.blue, size: 22),
+                        icon: const Icon(Icons.facebook_rounded,
+                            color: Colors.blue, size: 22),
                         label: const Text('Facebook'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppTheme.textDark,
                           side: BorderSide(color: Colors.grey.shade300),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
                         ),
                       ),
                     ),
@@ -264,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     Text(
                       'Belum punya akun? ',
-                      style: TextStyle(color: AppTheme.textLight, fontSize: 14),
+                      style: TextStyle(color: const Color.fromARGB(255, 33, 29, 29), fontSize: 14),
                     ),
                     GestureDetector(
                       onTap: () {

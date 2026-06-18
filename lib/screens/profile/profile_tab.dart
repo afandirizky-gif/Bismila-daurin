@@ -9,7 +9,8 @@ class ProfileTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-
+    return Consumer<AppState>(
+    builder: (context, appState, child) {
     return Scaffold(
       backgroundColor: AppTheme.creamBg,
       body: SingleChildScrollView(
@@ -17,7 +18,8 @@ class ProfileTab extends StatelessWidget {
           children: [
             // Top Green Card (Profile details & Level progress)
             Container(
-              padding: const EdgeInsets.only(top: 60, bottom: 28, left: 24, right: 24),
+              padding: const EdgeInsets.only(
+                  top: 60, bottom: 28, left: 24, right: 24),
               decoration: const BoxDecoration(
                 color: AppTheme.mintGreen,
                 borderRadius: BorderRadius.only(
@@ -37,9 +39,11 @@ class ProfileTab extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 3),
-                          image: const DecorationImage(
-                            image: NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80'),
-                            fit: BoxFit.cover,
+                          image: DecorationImage(
+          image: appState.profileImage != null 
+              ? FileImage(appState.profileImage!) as ImageProvider 
+              : const NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?'),
+          fit: BoxFit.cover,
                           ),
                         ),
                       ),
@@ -70,7 +74,8 @@ class ProfileTab extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.eco_rounded, color: Colors.white, size: 14),
+                      const Icon(Icons.eco_rounded,
+                          color: Colors.white, size: 14),
                       const SizedBox(width: 4),
                       Text(
                         'Eco Warrior • Level ${appState.userLevel}',
@@ -91,23 +96,32 @@ class ProfileTab extends StatelessWidget {
                       color: Colors.white,
                       backgroundColor: Colors.white.withOpacity(0.3),
                       minHeight: 8,
+                         ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            
+               
+          
+
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Core Stats Row (Poin, Streak, Stor)
                   Row(
                     children: [
-                      _statCard(context, '${appState.totalPoints}', 'Poin', Icons.emoji_events_rounded, Colors.teal),
+                      _statCard(context, '${appState.totalPoints}', 'Poin',
+                          Icons.emoji_events_rounded, Colors.teal),
                       const SizedBox(width: 10),
-                      _statCard(context, '${appState.streakCount}', 'hari streak', Icons.local_fire_department_rounded, AppTheme.accentGold),
+                      _statCard(
+                          context,
+                          '${appState.streakCount}',
+                          'hari streak',
+                          Icons.local_fire_department_rounded,
+                          AppTheme.accentGold),
                       const SizedBox(width: 10),
                       _statCard(context, '${appState.totalWeightKg} kg', 'total berat', Icons.inventory_2_rounded, AppTheme.primaryGreen),
                     ],
@@ -127,9 +141,14 @@ class ProfileTab extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('CO2 Bulan Ini', style: TextStyle(color: AppTheme.textLight, fontSize: 11)),
+                              const Text('CO2 Bulan Ini',
+                                  style: TextStyle(
+                                      color: AppTheme.textLight, fontSize: 11)),
                               const SizedBox(height: 6),
-                              Text('${appState.co2Prevented} kg dicegah', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text('${appState.co2Prevented} kg dicegah',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14)),
                             ],
                           ),
                         ),
@@ -145,9 +164,15 @@ class ProfileTab extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Jumlah Setor', style: TextStyle(color: AppTheme.textLight, fontSize: 11)),
+                              const Text('Jumlah Setor',
+                                  style: TextStyle(
+                                      color: AppTheme.textLight, fontSize: 11)),
                               const SizedBox(height: 6),
-                              Text('${appState.depositCountThisMonth}x bulan ini', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text(
+                                  '${appState.depositCountThisMonth}x bulan ini',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14)),
                             ],
                           ),
                         ),
@@ -175,12 +200,18 @@ class ProfileTab extends StatelessWidget {
                     ),
                     child: Column(
                       children: [
-                        _settingsTile(context, Icons.person_outline_rounded, 'Data User', () {}),
-                        _settingsTile(context, Icons.history_rounded, 'Riwayat Stor Sampah', () {}),
-                        _settingsTile(context, Icons.analytics_outlined, 'Statistik Dampak Lingkungan', () {}),
-                        _settingsTile(context, Icons.notifications_none_rounded, 'Notifikasi', () {}),
-                        _settingsTile(context, Icons.settings_outlined, 'Settings', () {}),
-                        _settingsTile(context, Icons.help_outline_rounded, 'Bantuan & FAQ', () {
+                        _settingsTile(context, Icons.person_outline_rounded,
+                            'Data User', () {}),
+                        _settingsTile(context, Icons.history_rounded,
+                            'Riwayat Stor Sampah', () {}),
+                        _settingsTile(context, Icons.analytics_outlined,
+                            'Statistik Dampak Lingkungan', () {}),
+                        _settingsTile(context, Icons.notifications_none_rounded,
+                            'Notifikasi', () {}),
+                        _settingsTile(context, Icons.settings_outlined,
+                            'Settings', () {}),
+                        _settingsTile(context, Icons.help_outline_rounded,
+                            'Bantuan & FAQ', () {
                           Navigator.pushNamed(context, '/faq');
                         }),
                       ],
@@ -191,27 +222,37 @@ class ProfileTab extends StatelessWidget {
                   // Logout button
                   OutlinedButton.icon(
                     onPressed: () {
-                      Navigator.pushNamedAndRemoveUntil(context, '/welcome', (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/welcome', (route) => false);
                     },
-                    icon: const Icon(Icons.logout_rounded, color: AppTheme.primaryGreen),
-                    label: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+                    icon: const Icon(Icons.logout_rounded,
+                        color: AppTheme.primaryGreen),
+                    label: const Text('Logout',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryGreen)),
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppTheme.primaryGreen, width: 1.5),
+                      side: const BorderSide(
+                          color: AppTheme.primaryGreen, width: 1.5),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-  }
+      );
+    }
+  );
+}
 
-  Widget _statCard(BuildContext context, String value, String label, IconData icon, Color iconColor) {
+  Widget _statCard(BuildContext context, String value, String label,
+      IconData icon, Color iconColor) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
@@ -223,9 +264,16 @@ class ProfileTab extends StatelessWidget {
           children: [
             Icon(icon, color: iconColor, size: 24),
             const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryGreen)),
+            Text(value,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppTheme.primaryGreen)),
             const SizedBox(height: 2),
-            Text(label, textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.textLight, fontSize: 10)),
+            Text(label,
+                textAlign: TextAlign.center,
+                style:
+                    const TextStyle(color: AppTheme.textLight, fontSize: 10)),
           ],
         ),
       ),
@@ -246,14 +294,16 @@ class ProfileTab extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
           ),
         ],
       ),
     );
   }
 
-  Widget _settingsTile(BuildContext context, IconData icon, String title, VoidCallback onTap) {
+  Widget _settingsTile(
+      BuildContext context, IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(6),
@@ -263,8 +313,10 @@ class ProfileTab extends StatelessWidget {
         ),
         child: Icon(icon, color: AppTheme.primaryGreen, size: 20),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppTheme.textLight),
+      title: Text(title,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+      trailing: const Icon(Icons.arrow_forward_ios_rounded,
+          size: 14, color: AppTheme.textLight),
       onTap: onTap,
     );
   }

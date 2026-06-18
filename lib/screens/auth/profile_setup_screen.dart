@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme.dart';
 import '../../state/app_state.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   const ProfileSetupScreen({super.key});
@@ -12,13 +14,23 @@ class ProfileSetupScreen extends StatefulWidget {
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _referralController = TextEditingController();
-  
+
   String? _selectedDomisili;
   String? _selectedGender;
 
-  final List<String> _domisiliList = ['Batam', 'Jakarta', 'Surabaya', 'Bandung', 'Medan'];
+  final ImagePicker _picker = ImagePicker();
+  File? _selectedImage;
+
+  final List<String> _domisiliList = [
+    'Batam',
+    'Jakarta',
+    'Surabaya',
+    'Bandung',
+    'Medan'
+  ];
   final List<String> _genderList = ['Laki-laki', 'Perempuan'];
 
   Future<void> _selectDate(BuildContext context) async {
@@ -42,17 +54,38 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     );
     if (picked != null) {
       setState(() {
-        _dobController.text = "${picked.day} ${_getMonthName(picked.month)} ${picked.year}";
+        _dobController.text =
+            "${picked.day} ${_getMonthName(picked.month)} ${picked.year}";
       });
     }
   }
 
   String _getMonthName(int month) {
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
     ];
     return months[month - 1];
+  }
+
+  Future<void> _pickImage() async {
+    final XFile? pickedFile =
+        await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
   }
 
   @override
@@ -91,59 +124,70 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Stack(
-                        alignment: Alignment.bottomRight,
-                        children: [
-                          Container(
-                            width: 110,
-                            height: 110,
-                            decoration: BoxDecoration(
-                              color: AppTheme.lightMint,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.06),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 6),
-                                )
-                              ],
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: Stack(
+                          alignment: Alignment.bottomRight,
+                          children: [
+                            Container(
+                              width: 110,
+                              height: 110,
+                              decoration: BoxDecoration(
+                                color: AppTheme.lightMint,
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 4),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.06),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  )
+                                ],
+                              ),
+                              child: _selectedImage != null
+                                  ? ClipOval(
+                                      child: Image.file(
+                                        _selectedImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : const Center(
+                                      child: Text(
+                                        'R',
+                                        style: TextStyle(
+                                          fontSize: 48,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.primaryGreen,
+                                        ),
+                                      ),
+                                    ),
                             ),
-                            child: const Center(
-                              child: Text(
-                                'R',
-                                style: TextStyle(
-                                  fontSize: 48,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryGreen,
-                                ),
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 2),
+                                  )
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                color: AppTheme.primaryGreen,
+                                size: 20,
                               ),
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 4,
-                                  offset: Offset(0, 2),
-                                )
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              color: AppTheme.primaryGreen,
-                              size: 20,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 8),
                       TextButton(
-                        onPressed: () {},
+                        onPressed: _pickImage,
                         child: Text(
                           'Tap untuk ubah foto',
                           style: TextStyle(
@@ -164,9 +208,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   readOnly: true,
                   onTap: () => _selectDate(context),
                   decoration: _inputDecoration('Pilih Tanggal Lahir').copyWith(
-                    suffixIcon: const Icon(Icons.calendar_today_outlined, color: AppTheme.mintGreen),
+                    suffixIcon: const Icon(Icons.calendar_today_outlined,
+                        color: AppTheme.mintGreen),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Tanggal lahir harus dipilih' : null,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Tanggal lahir harus dipilih'
+                      : null,
                 ),
                 const SizedBox(height: 20),
 
@@ -188,7 +235,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       _selectedDomisili = val;
                     });
                   },
-                  validator: (value) => value == null ? 'Domisili harus dipilih' : null,
+                  validator: (value) =>
+                      value == null ? 'Domisili harus dipilih' : null,
                 ),
                 const SizedBox(height: 20),
 
@@ -210,7 +258,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       _selectedGender = val;
                     });
                   },
-                  validator: (value) => value == null ? 'Jenis kelamin harus dipilih' : null,
+                  validator: (value) =>
+                      value == null ? 'Jenis kelamin harus dipilih' : null,
                 ),
                 const SizedBox(height: 20),
 
@@ -221,7 +270,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     _fieldLabel('Kode referral'),
                     Text(
                       '(tidak wajib di isi)',
-                      style: TextStyle(color: AppTheme.textLight.withOpacity(0.8), fontSize: 12),
+                      style: TextStyle(
+                          color: AppTheme.textLight.withOpacity(0.8),
+                          fontSize: 12),
                     ),
                   ],
                 ),
@@ -233,15 +284,18 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
                 // Welcome gift banner
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
                     color: AppTheme.lightGold,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppTheme.accentGold.withOpacity(0.2)),
+                    border:
+                        Border.all(color: AppTheme.accentGold.withOpacity(0.2)),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.card_giftcard_rounded, color: AppTheme.accentGold, size: 24),
+                      const Icon(Icons.card_giftcard_rounded,
+                          color: AppTheme.accentGold, size: 24),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
@@ -272,7 +326,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                         // gender: _selectedGender ?? '',
                       );
                       // Navigate to onboarding tour
-                      Navigator.pushNamedAndRemoveUntil(context, '/onboarding', (route) => false);
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/onboarding', (route) => false);
                     }
                   },
                   child: const Text('Simpan Profil'),

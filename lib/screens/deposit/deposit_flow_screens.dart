@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:latlong2/latlong.dart';
 import '../../theme.dart';
 import '../../state/app_state.dart';
+import '../../widgets/map_view.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SetorSampahScreen extends StatefulWidget {
-  const SetorSampahScreen({super.key});
+  final LatLng? initialLocation;
+  final int initialTabIndex;
+
+  const SetorSampahScreen({
+    super.key,
+    this.initialLocation,
+    this.initialTabIndex = 0,
+  });
 
   @override
   State<SetorSampahScreen> createState() => _SetorSampahScreenState();
 }
 
-class _SetorSampahScreenState extends State<SetorSampahScreen> {
-  int _viewIndex = 0; 
+class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProviderStateMixin {
+  int _viewIndex = 0;
   // 0: Choice View (Page 20)
   // 1: Drop Point Map (Page 21)
   // 2: Jemput Calendar (Page 22)
@@ -21,6 +31,7 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
 
   // Selected Drop point holder
   Map<String, dynamic>? _selectedDropPoint;
+  LatLng? _selectedPoint; // Selected point coordinates for map
 
   // New pickup scheduler fields
   DateTime? _selectedDate;
@@ -34,6 +45,7 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _weightController.dispose();
     _addressController.dispose();
     super.dispose();
@@ -66,20 +78,25 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
     return Scaffold(
       backgroundColor: AppTheme.creamBg,
       appBar: AppBar(
-        leading: _viewIndex > 0 
+        leading: _viewIndex > 0
             ? IconButton(
                 icon: const Icon(Icons.arrow_back_ios_rounded),
                 onPressed: () {
                   setState(() {
-                    if (_viewIndex == 5) _viewIndex = 1;
-                    else if (_viewIndex == 4) _viewIndex = 3;
-                    else _viewIndex = 0;
+                    if (_viewIndex == 5)
+                      _viewIndex = 1;
+                    else if (_viewIndex == 4)
+                      _viewIndex = 3;
+                    else
+                      _viewIndex = 0;
                   });
                 },
               )
             : null,
         title: Text(
-          _viewIndex == 3 ? 'Jadwal Aktif' : (_viewIndex == 4 ? 'Jadwal Penjemputan Baru' : 'Setor Sampah'),
+          _viewIndex == 3
+              ? 'Jadwal Aktif'
+              : (_viewIndex == 4 ? 'Jadwal Penjemputan Baru' : 'Setor Sampah'),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -123,7 +140,7 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
           style: TextStyle(color: AppTheme.textLight, fontSize: 14),
         ),
         const SizedBox(height: 24),
-        
+
         // Jemput & Drop Point buttons
         Row(
           children: [
@@ -147,14 +164,19 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: _choiceCard(
-                icon: Icons.location_on_rounded,
+                icon: Icons.map_rounded, // Ikon peta
                 title: 'Drop Point',
-                desc: 'Setor mandiri di stasiun',
-                onTap: () => setState(() => _viewIndex = 1),
+                desc: 'Antar ke lokasi terdekat',
+                onTap: () {
+                  setState(() {
+                    _viewIndex = 1; // Pindah ke case 1 (Peta Drop Point)
+                  });
+                },
               ),
             ),
           ],
         ),
+
         const SizedBox(height: 36),
 
         // Recent Deposits
@@ -164,7 +186,10 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
             const SizedBox(width: 8),
             Text(
               'Recent Deposits',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryGreen),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppTheme.primaryGreen),
             ),
           ],
         ),
@@ -269,7 +294,10 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
             const SizedBox(height: 16),
             Text(
               title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryGreen),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppTheme.primaryGreen),
             ),
             const SizedBox(height: 4),
             Text(
@@ -295,6 +323,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
     final List<Map<String, dynamic>> dropPoints = [
       {
         'name': 'EcoHub Batam Center',
+        'lat': 1.1275,
+        'lng': 104.0417,
         'address': 'Jl. Engku Putri No. 15',
         'distance': '0.8 km',
         'rating': '4.8',
@@ -305,6 +335,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
       },
       {
         'name': 'Recycle Station Harbour Bay',
+        'lat': 1.1350,
+        'lng': 104.0200,
         'address': 'Harbour Bay Residences',
         'distance': '2.5 km',
         'rating': '4.9',
@@ -312,6 +344,18 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
         'status': 'Tutup',
         'eta': '8 min',
         'points': '+200 pts',
+      },
+      {
+        'name': 'EcoHub Medan Baru',
+        'lat': 3.5852, // Koordinat Latitude Medan
+        'lng': 98.6756, // Koordinat Longitude Medan
+        'address': 'Jl. Gajah Mada No. 10, Medan',
+        'distance': '105.2 km',
+        'rating': '4.7',
+        'hours': '09:00 - 17:00',
+        'status': 'Buka',
+        'eta': '4 jam',
+        'points': '+180 pts',
       },
     ];
 
@@ -365,42 +409,50 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                 const Positioned(
                   top: 80,
                   left: 60,
-                  child: Icon(Icons.location_on_rounded, color: Colors.green, size: 36),
+                  child: Icon(Icons.location_on_rounded,
+                      color: Colors.green, size: 36),
                 ),
                 const Positioned(
                   bottom: 120,
                   right: 90,
-                  child: Icon(Icons.location_on_rounded, color: Colors.red, size: 36),
+                  child: Icon(Icons.location_on_rounded,
+                      color: Colors.red, size: 36),
                 ),
                 // Current User location
                 Positioned(
                   top: 150,
                   left: 140,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 4)
+                      ],
                     ),
                     child: const Row(
                       children: [
                         Icon(Icons.circle, color: Colors.blue, size: 10),
                         SizedBox(width: 6),
-                        Text('Lokasi Kamu', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10)),
+                        Text('Lokasi Kamu',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 10)),
                       ],
                     ),
                   ),
                 ),
                 // Floating target button
-                Positioned(
-                  top: 16,
-                  right: 16,
-                  child: FloatingActionButton.small(
-                    onPressed: () {},
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppTheme.primaryGreen,
-                    child: const Icon(Icons.my_location_rounded),
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: DropPointMap(
+                      dropPoints: dropPoints,
+                      selectedPoint: _selectedPoint ??
+                          LatLng(3.5852,98.6756), 
+                          destination: _selectedPoint ?? LatLng(3.5852, 98.6756),
+                    ),
                   ),
                 ),
               ],
@@ -424,8 +476,14 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Drop Point Terdekat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryGreen)),
-                  Text('${dropPoints.length} lokasi', style: const TextStyle(color: AppTheme.textLight, fontSize: 12)),
+                  const Text('Drop Point Terdekat',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: AppTheme.primaryGreen)),
+                  Text('${dropPoints.length} lokasi',
+                      style: const TextStyle(
+                          color: AppTheme.textLight, fontSize: 12)),
                 ],
               ),
               const SizedBox(height: 12),
@@ -445,16 +503,22 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                           color: AppTheme.lightMint,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.location_on_rounded, color: AppTheme.mintGreen),
+                        child: const Icon(Icons.location_on_rounded,
+                            color: AppTheme.mintGreen),
                       ),
                       title: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(dp['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(dp['name'] as String,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14)),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: isOpen ? Colors.green.shade50 : Colors.red.shade50,
+                              color: isOpen
+                                  ? Colors.green.shade50
+                                  : Colors.red.shade50,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -471,17 +535,25 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(dp['address'] as String, style: const TextStyle(fontSize: 11, color: AppTheme.textLight)),
+                          Text(dp['address'] as String,
+                              style: const TextStyle(
+                                  fontSize: 11, color: AppTheme.textLight)),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.near_me_outlined, size: 12, color: AppTheme.mintGreen),
+                              const Icon(Icons.near_me_outlined,
+                                  size: 12, color: AppTheme.mintGreen),
                               const SizedBox(width: 4),
-                              Text('${dp['distance']} • ', style: const TextStyle(fontSize: 11)),
-                              const Icon(Icons.star_rounded, size: 12, color: AppTheme.accentGold),
-                              Text(' ${dp['rating']} • ', style: const TextStyle(fontSize: 11)),
-                              const Icon(Icons.access_time_rounded, size: 12, color: AppTheme.textLight),
-                              Text(' ${dp['hours']}', style: const TextStyle(fontSize: 11)),
+                              Text('${dp['distance']} • ',
+                                  style: const TextStyle(fontSize: 11)),
+                              const Icon(Icons.star_rounded,
+                                  size: 12, color: AppTheme.accentGold),
+                              Text(' ${dp['rating']} • ',
+                                  style: const TextStyle(fontSize: 11)),
+                              const Icon(Icons.access_time_rounded,
+                                  size: 12, color: AppTheme.textLight),
+                              Text(' ${dp['hours']}',
+                                  style: const TextStyle(fontSize: 11)),
                             ],
                           ),
                         ],
@@ -489,6 +561,7 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                       onTap: () {
                         setState(() {
                           _selectedDropPoint = dp;
+                          _selectedPoint = LatLng(dp['lat'], dp['lng']);
                           _viewIndex = 5; // Detail navigation view
                         });
                       },
@@ -527,10 +600,13 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
           ],
         ),
         const SizedBox(height: 24),
-        
+
         const Text(
           'Jadwal Penjemputan',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.primaryGreen),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: AppTheme.primaryGreen),
         ),
         const SizedBox(height: 12),
 
@@ -543,7 +619,10 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
         // Recents
         const Text(
           'Recent Deposits',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primaryGreen),
+          style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: AppTheme.primaryGreen),
         ),
         const SizedBox(height: 12),
         // Small deposits scroll
@@ -563,9 +642,14 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(item.type, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                    Text(item.type,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 11)),
                     const SizedBox(height: 4),
-                    Text('${item.weight} kg', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.mintGreen)),
+                    Text('${item.weight} kg',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.mintGreen)),
                   ],
                 ),
               );
@@ -591,21 +675,27 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
-        title: Text(day, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(slot, style: const TextStyle(fontSize: 12, color: AppTheme.textLight)),
+        title: Text(day,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text(slot,
+            style: const TextStyle(fontSize: 12, color: AppTheme.textLight)),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: AppTheme.lightMint,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Text('Available', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 10)),
+          child: const Text('Available',
+              style: TextStyle(
+                  color: AppTheme.primaryGreen,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10)),
         ),
         onTap: () {
           // Pre-fill form from selected slot
           _selectedDate = DateTime(2026, 3, 31);
           _selectedTimeSlot = '09:00 - 12:00';
-          _addressController.text = 'Jl. Melati No. 15, Jakarta Selatan';
+          _addressController.text = 'Jl. Melati No. 15, medan';
           _weightController.text = '8.0';
           setState(() {
             _viewIndex = 4;
@@ -623,9 +713,11 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.calendar_today_rounded, size: 60, color: AppTheme.textLight),
+            const Icon(Icons.calendar_today_rounded,
+                size: 60, color: AppTheme.textLight),
             const SizedBox(height: 16),
-            const Text('Tidak ada jadwal aktif.', style: TextStyle(color: AppTheme.textLight)),
+            const Text('Tidak ada jadwal aktif.',
+                style: TextStyle(color: AppTheme.textLight)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => setState(() => _viewIndex = 4),
@@ -656,14 +748,18 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppTheme.lightMint,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
                         'Terjadwal',
-                        style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold, fontSize: 12),
+                        style: TextStyle(
+                            color: AppTheme.primaryGreen,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12),
                       ),
                     ),
                     IconButton(
@@ -683,9 +779,9 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Date/Time
-                _detailRow(Icons.calendar_month_rounded, 'Tanggal & Waktu', 
+                _detailRow(Icons.calendar_month_rounded, 'Tanggal & Waktu',
                     '${pickup.date.day} ${_getMonthName(pickup.date.month)} ${pickup.date.year}, ${pickup.timeSlot}'),
                 const Divider(height: 24),
 
@@ -725,7 +821,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                       // Pre-populate form to modify
                       _selectedDate = pickup.date;
                       _selectedTimeSlot = pickup.timeSlot;
-                      _weightController.text = pickup.estimatedWeight.toString();
+                      _weightController.text =
+                          pickup.estimatedWeight.toString();
                       _addressController.text = pickup.address;
                       setState(() {
                         _viewIndex = 4;
@@ -765,9 +862,15 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(color: AppTheme.textLight, fontSize: 12)),
+              Text(title,
+                  style:
+                      const TextStyle(color: AppTheme.textLight, fontSize: 12)),
               const SizedBox(height: 4),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.primaryGreen)),
+              Text(value,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppTheme.primaryGreen)),
             ],
           ),
         ),
@@ -800,10 +903,11 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
               }
             },
             decoration: _inputDecoration('Pilih Tanggal').copyWith(
-              suffixIcon: const Icon(Icons.calendar_today_outlined, color: AppTheme.mintGreen),
+              suffixIcon: const Icon(Icons.calendar_today_outlined,
+                  color: AppTheme.mintGreen),
             ),
             controller: TextEditingController(
-              text: _selectedDate != null 
+              text: _selectedDate != null
                   ? '${_selectedDate!.day} ${_getMonthName(_selectedDate!.month)} ${_selectedDate!.year}'
                   : '',
             ),
@@ -850,7 +954,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
             controller: _weightController,
             keyboardType: TextInputType.number,
             decoration: _inputDecoration('Masukkan berat dalam kg').copyWith(
-              suffixIcon: const Icon(Icons.shopping_bag_outlined, color: AppTheme.mintGreen),
+              suffixIcon: const Icon(Icons.shopping_bag_outlined,
+                  color: AppTheme.mintGreen),
             ),
           ),
           const SizedBox(height: 16),
@@ -862,7 +967,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
             maxLines: 3,
             decoration: _inputDecoration('Masukkan alamat lengkap...').copyWith(
               alignLabelWithHint: true,
-              prefixIcon: const Icon(Icons.location_on_outlined, color: AppTheme.mintGreen),
+              prefixIcon: const Icon(Icons.location_on_outlined,
+                  color: AppTheme.mintGreen),
             ),
           ),
           const SizedBox(height: 32),
@@ -872,11 +978,12 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
             onPressed: () async {
               if (_selectedDate == null || _selectedTimeSlot == null || _selectedCategory == null || _weightController.text.isEmpty || _addressController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Mohon isi semua data formulir')),
+                  const SnackBar(
+                      content: Text('Mohon isi semua data formulir')),
                 );
                 return;
               }
-              
+
               final weight = double.tryParse(_weightController.text) ?? 5.0;
               final success = await state.schedulePickupApi(
                 _selectedDate!,
@@ -918,7 +1025,10 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         label,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 14),
+        style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppTheme.primaryGreen,
+            fontSize: 14),
       ),
     );
   }
@@ -942,10 +1052,32 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
 
   String _getMonthName(int month) {
     const months = [
-      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember'
     ];
     return months[month - 1];
+  }
+
+  Future<void> _launchMaps(double lat, double lng) async {
+    // Link universal Google Maps
+    final Uri url = Uri.parse(
+        "https://www.google.com/maps/dir/?api=1&destination=$lat,$lng");
+
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   // --- 5. Drop Point Detail Navigation (Page 31) ---
@@ -958,21 +1090,21 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Map Placeholder at the top
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFD4EAD6).withOpacity(0.5),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(Icons.map_rounded, size: 64, color: AppTheme.mintGreen),
-                  Positioned(
-                    top: 40,
-                    child: Text('Simulasi Peta Rute Navigasi', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
-                  ),
-                ],
+          Container(
+            height: 350, // Sesuaikan tinggi area hijaumu
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.green.shade50, // Warna background hijaumu
+              borderRadius: BorderRadius.circular(20),
+            ),
+            // Cukup panggil DropPointMap di sini
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: DropPointMap(
+                dropPoints: dropPoints, // List data lokasi
+                selectedPoint: _selectedPoint ??
+                    LatLng(3.5852, 98.6756), 
+                    destination: _selectedPoint ?? LatLng(3.5852, 98.6756),
               ),
             ),
           ),
@@ -996,7 +1128,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                         color: AppTheme.lightMint,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.location_on_rounded, color: AppTheme.mintGreen),
+                      child: const Icon(Icons.location_on_rounded,
+                          color: AppTheme.mintGreen),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -1005,11 +1138,15 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                         children: [
                           Text(
                             _selectedDropPoint!['name'],
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryGreen),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: AppTheme.primaryGreen),
                           ),
                           Text(
                             _selectedDropPoint!['address'],
-                            style: const TextStyle(color: AppTheme.textLight, fontSize: 12),
+                            style: const TextStyle(
+                                color: AppTheme.textLight, fontSize: 12),
                           ),
                         ],
                       ),
@@ -1021,11 +1158,14 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                 // Specs Grid (Distance, ETA, Reward)
                 Row(
                   children: [
-                    _navigationCard(Icons.near_me_rounded, 'Distance', _selectedDropPoint!['distance'], Colors.blue),
+                    _navigationCard(Icons.near_me_rounded, 'Distance',
+                        _selectedDropPoint!['distance'], Colors.blue),
                     const SizedBox(width: 8),
-                    _navigationCard(Icons.access_time_filled_rounded, 'ETA', _selectedDropPoint!['eta'], Colors.orange),
+                    _navigationCard(Icons.access_time_filled_rounded, 'ETA',
+                        _selectedDropPoint!['eta'], Colors.orange),
                     const SizedBox(width: 8),
-                    _navigationCard(Icons.monetization_on_rounded, 'Reward', _selectedDropPoint!['points'], Colors.green),
+                    _navigationCard(Icons.monetization_on_rounded, 'Reward',
+                        _selectedDropPoint!['points'], Colors.green),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -1034,9 +1174,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Navigasi rute dimulai! Silakan ikuti petunjuk di jalan.')),
-                      );
+                      _launchMaps(_selectedDropPoint!['lat'],
+                          _selectedDropPoint!['lng']);
                     },
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1076,7 +1215,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
     );
   }
 
-  Widget _navigationCard(IconData icon, String label, String value, Color color) {
+  Widget _navigationCard(
+      IconData icon, String label, String value, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
@@ -1089,9 +1229,15 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> {
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(height: 6),
-            Text(label, style: const TextStyle(color: AppTheme.textLight, fontSize: 10)),
+            Text(label,
+                style:
+                    const TextStyle(color: AppTheme.textLight, fontSize: 10)),
             const SizedBox(height: 2),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.primaryGreen)),
+            Text(value,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: AppTheme.primaryGreen)),
           ],
         ),
       ),

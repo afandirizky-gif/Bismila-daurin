@@ -42,28 +42,26 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
             children: [
               const Spacer(flex: 3),
-              // Logo
               Image.asset(
-                'assets/logo.png',
+                'assets/logo_a.png',
                 width: 220,
                 height: 220,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(height: 32),
-              // Slogan
+              const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40.0),
                 child: Text(
                   'Pilah sampah lebih mudah, dapat reward nyata, dan lihat dampakmu bagi bumi.',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppTheme.textDark,
+                        color: const Color.fromARGB(255, 0, 0, 0),
                         height: 1.5,
-                        fontSize: 16,
+                        fontSize: 14,
                       ),
                 ),
               ),
-              const Spacer(flex: 2),
+              const SizedBox(height: 22),
               // Interactive Button
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -71,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   Text(
                     'Tap untuk melanjutkan',
                     style: TextStyle(
-                      color: AppTheme.primaryGreen,
+                      color: const Color(0xFF2E7D32),
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -79,19 +77,29 @@ class _SplashScreenState extends State<SplashScreen> {
                   const SizedBox(width: 8),
                   const Icon(
                     Icons.arrow_forward,
-                    color: AppTheme.primaryGreen,
+                    color: Color(0xFF2E7D32),
                     size: 20,
                   ),
                 ],
               ),
               const Spacer(flex: 2),
-              // Version code
-              Text(
-                'v1.0.0',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.textLight.withOpacity(0.6),
-                      letterSpacing: 1.2,
-                    ),
+              // Version code with underline
+              Column(
+                children: [
+                  Text(
+                    'v1.0.0',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppTheme.textLight.withOpacity(0.6),
+                          letterSpacing: 1.2,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 90,
+                    height: 2,
+                    color: const Color.fromARGB(255, 25, 18, 18).withOpacity(0.3),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
             ],
