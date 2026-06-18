@@ -90,12 +90,14 @@ class _ChallengeTabState extends State<ChallengeTab> {
 
   // Tab 1: Joined/Active Challenges
   Widget _buildAktifTab(AppState state) {
-    final joined = state.joinedChallenges;
+    final joined = state.activeChallenges.where((c) => !c.isCompleted).toList();
+    final featured = state.featuredChallenge;
     
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       children: [
-        // Featured Challenge Card (Pilah 10 kg)
+        // Featured Challenge Card
+        if (featured != null)
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -134,21 +136,21 @@ class _ChallengeTabState extends State<ChallengeTab> {
                 ],
               ),
               const SizedBox(height: 12),
-              const Text(
-                'Pilah 10 kg Minggu Ini',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Outfit'),
+              Text(
+                featured?.title ?? 'Challenge Unggulan',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18, fontFamily: 'Outfit'),
               ),
               const SizedBox(height: 4),
-              const Text(
-                '128 orang bergabung • Berakhir dalam 2 hari',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+              Text(
+                featured?.duration ?? '',
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
               ),
               const SizedBox(height: 16),
               // Progress Bar
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: const LinearProgressIndicator(
-                  value: 0.7,
+                child: LinearProgressIndicator(
+                  value: (featured?.totalGoal ?? 1) > 0 ? (featured!.currentProgress / featured.totalGoal) : 0,
                   color: AppTheme.mintGreen,
                   backgroundColor: Colors.white24,
                   minHeight: 6,
@@ -157,17 +159,19 @@ class _ChallengeTabState extends State<ChallengeTab> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // Simulate progress to complete the challenge
-                  state.progressChallenge('Pilah 10 kg Minggu Ini', 3);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Anda menyumbangkan 3 kg sampah ke Challenge ini!')),
-                  );
+                  // Wait for user to actually join
+                  if (!(featured?.isJoined ?? false)) {
+                    state.joinChallengeApi(featured?.id ?? '');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Anda berhasil mengikuti Challenge ini!')),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: AppTheme.primaryGreen,
                 ),
-                child: const Text('Setor Sekarang', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text((featured?.isJoined ?? false) ? 'Setor Sekarang' : 'Ikuti Challenge', style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -291,12 +295,27 @@ class _ChallengeTabState extends State<ChallengeTab> {
                 ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryGreen),
-              onPressed: () {
-                state.progressChallenge(challenge.title, 1);
-              },
-            ),
+              if (challenge.isJoined && !challenge.isCompleted)
+                challenge.isOnCooldown
+                    ? const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Icon(Icons.check_circle_rounded, color: Colors.grey),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.add_circle_outline_rounded, color: AppTheme.primaryGreen),
+                        onPressed: () async {
+                          final errorMsg = await state.progressChallengeApi(challenge.id);
+                          if (errorMsg != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(errorMsg)),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Progress tantangan berhasil ditambahkan!')),
+                            );
+                          }
+                        },
+                      ),
           ],
         ),
       ),
@@ -321,67 +340,86 @@ class _ChallengeTabState extends State<ChallengeTab> {
             child: Center(child: Text('Semua tantangan telah diikuti!', style: TextStyle(color: AppTheme.textLight))),
           )
         else
-          ...available.map((challenge) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.lightMint,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.rocket_launch_rounded, color: AppTheme.mintGreen, size: 24),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          ...available.map((challenge) => _availableChallengeCard(challenge, state)).toList(),
+      ],
+    );
+  }
+
+  Widget _availableChallengeCard(ChallengeItem challenge, AppState state) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.lightMint,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.eco_rounded, color: AppTheme.mintGreen, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(challenge.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  const SizedBox(height: 4),
+                  Text(challenge.description, style: const TextStyle(color: AppTheme.textLight, fontSize: 12)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            challenge.title,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          Text(
-                            challenge.description,
-                            style: const TextStyle(color: AppTheme.textLight, fontSize: 11),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${challenge.duration} • +${challenge.rewardPoints} pts',
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.mintGreen, fontSize: 11),
-                          ),
+                          const Icon(Icons.monetization_on_rounded, color: AppTheme.accentGold, size: 14),
+                          const SizedBox(width: 4),
+                          Text('${challenge.rewardPoints} pts', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                         ],
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        state.joinChallenge(challenge.title);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Berhasil bergabung dalam challenge: ${challenge.title}')),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.timer_outlined, color: AppTheme.textLight, size: 14),
+                          const SizedBox(width: 4),
+                          Text(challenge.duration, style: const TextStyle(color: AppTheme.textLight, fontSize: 12)),
+                        ],
                       ),
-                      child: const Text('Ikut', style: TextStyle(fontSize: 12)),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-            );
-          }).toList(),
-      ],
+            ),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: () {
+                state.joinChallengeApi(challenge.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Anda mulai berpartisipasi di ${challenge.title}!')),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryGreen,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              ),
+              child: const Text('Ikuti', style: TextStyle(fontSize: 12)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   // Tab 3: Completed/Selesai Challenges
   Widget _buildSelesaiTab(AppState state) {
-    final completed = state.completedChallenges;
+    // We filter active challenges or just use empty list if backend doesn't return completed yet
+    final completed = state.activeChallenges.where((c) => c.isCompleted).toList();
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 20),

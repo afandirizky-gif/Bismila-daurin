@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme.dart';
+import '../../services/auth_service.dart';
+import '../../state/app_state.dart';
 import 'package:flutter/gestures.dart';
 import 'terms_and_conditions_screen.dart';
 
@@ -179,24 +182,44 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Sign Up Button moved below terms & conditions
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate() && _agreeToTerms) {
-                        Navigator.pushNamed(context, '/otp');
-                      } else if (!_agreeToTerms) {
+                // Sign Up Button
+                ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate() && _agreeToTerms) {
+                      final data = {
+                        'fullName': _usernameController.text.trim(),
+                        'email': _emailController.text.trim(),
+                        'password': _passwordController.text.trim(),
+                        'phone': _phoneController.text.trim(),
+                        'address': '-', // Dummy address for now
+                      };
+
+                      final result = await AuthService.register(data);
+                      if (!mounted) return;
+
+                      if (result['success']) {
+                        final user = result['user'];
+                        Provider.of<AppState>(context, listen: false).setUserData(user);
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/main_frame',
+                          (route) => false,
+                        );
+                      } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Anda harus menyetujui Syarat & Ketentuan')),
+                          SnackBar(content: Text(result['message'])),
                         );
                       }
-                    },
-                    child: const Text('Daftar Sekarang'),
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                    } else if (!_agreeToTerms) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Anda harus menyetujui Syarat & Ketentuan')),
+                      );
+                    }
+                  },
+                  child: const Text('Daftar Sekarang'),
+                ),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
         ));

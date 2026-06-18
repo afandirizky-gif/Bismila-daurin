@@ -323,22 +323,29 @@ class HomeTab extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 24),
-                    // Visual Mockup of Bar Chart
+                    // Dynamic Bar Chart
                     SizedBox(
                       height: 120,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          _chartBar('Sen', 30),
-                          _chartBar('Sel', 60),
-                          _chartBar('Rab', 20),
-                          _chartBar('Kam', 80),
-                          _chartBar('Jum', 45),
-                          _chartBar('Sab', 90),
-                          _chartBar('Min', 50),
-                        ],
-                      ),
+                      child: Builder(builder: (context) {
+                        if (appState.depositChartData.isEmpty) {
+                          return const Center(child: Text('Belum ada data', style: TextStyle(color: AppTheme.textLight)));
+                        }
+                        double maxVal = appState.depositChartData.fold(0.0, (m, e) {
+                          double v = (e['depositCount'] as num).toDouble();
+                          return v > m ? v : m;
+                        });
+                        if (maxVal == 0) maxVal = 1;
+                        
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: appState.depositChartData.map((e) {
+                            double v = (e['depositCount'] as num).toDouble();
+                            double h = (v / maxVal) * 80;
+                            return _chartBar(e['label'] as String, h < 4 ? 4 : h);
+                          }).toList(),
+                        );
+                      }),
                     ),
                   ],
                 ),
@@ -372,13 +379,9 @@ class HomeTab extends StatelessWidget {
               const SizedBox(height: 10),
 
               OutlinedButton.icon(
-                                  
-                  onPressed: () {
-                    Navigator.push(
-                      context, 
-                      MaterialPageRoute(builder: (context) => const SetorSampahScreen()),
-                    );
-                  },
+                onPressed: () {
+                  appState.navigateToTab(0, depositViewIndex: 1); // 0 = Deposit Tab, 1 = Map View
+                },
                 icon: const Icon(Icons.map_rounded, size: 20),
                 label: const Text('Cari Drop Point Terdekat'),
                 style: OutlinedButton.styleFrom(
@@ -392,12 +395,7 @@ class HomeTab extends StatelessWidget {
               // Jadwalkan penjemputan button
               OutlinedButton.icon(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SetorSampahScreen(initialTabIndex: 0),
-                    ),
-                  );
+                  appState.navigateToTab(0, depositViewIndex: 4); // 0 = Deposit Tab, 4 = Jadwal Baru View
                 },
                 icon: const Icon(Icons.calendar_month_rounded, size: 20),
                 label: const Text('Jadwalkan Penjemputan'),
@@ -429,69 +427,90 @@ class HomeTab extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              // Render joined challenges
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: appState.joinedChallenges.take(2).length,
-                itemBuilder: (context, index) {
-                  final challenge = appState.joinedChallenges[index];
-                  final progressPercent = challenge.currentProgress / challenge.totalGoal;
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.lightMint,
-                                  shape: BoxShape.circle,
+              // Render active challenges from dashboard
+              if (appState.activeChallengesDashboard.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(
+                    child: Text('Belum ada tantangan berjalan.', style: TextStyle(color: AppTheme.textLight)),
+                  ),
+                )
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: appState.activeChallengesDashboard.length > 2 
+                    ? 2 
+                    : appState.activeChallengesDashboard.length,
+                  itemBuilder: (context, index) {
+                    final challenge = appState.activeChallengesDashboard[index];
+                    final progressPercent = challenge.currentProgress / challenge.totalGoal;
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.lightMint,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.eco_rounded, color: AppTheme.mintGreen, size: 20),
                                 ),
-                                child: const Icon(Icons.eco_rounded, color: AppTheme.mintGreen, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      challenge.title,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                    ),
-                                    Text(
-                                      '+${challenge.rewardPoints} pts • ${challenge.duration}',
-                                      style: TextStyle(color: AppTheme.textLight, fontSize: 11),
-                                    ),
-                                  ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        challenge.title,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        challenge.description,
+                                        style: const TextStyle(color: AppTheme.textLight, fontSize: 12),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                '${challenge.currentProgress}/${challenge.totalGoal}',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: progressPercent,
-                              color: AppTheme.mintGreen,
-                              backgroundColor: Colors.grey.shade200,
-                              minHeight: 8,
+                              ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Progress: ${challenge.currentProgress} / ${challenge.totalGoal}',
+                                  style: const TextStyle(color: AppTheme.textLight, fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  '${(progressPercent * 100).toInt()}%',
+                                  style: const TextStyle(color: AppTheme.primaryGreen, fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              value: progressPercent,
+                              backgroundColor: AppTheme.creamBg,
+                              color: AppTheme.mintGreen,
+                              minHeight: 8,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                    );
+                  },
+                ),
             ],
           ),
         ),

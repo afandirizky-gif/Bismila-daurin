@@ -1,18 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme.dart';
+import '../../state/app_state.dart';
+import '../../services/auth_service.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    // Memberikan waktu sedikit agar animasi terlihat
+    await Future.delayed(const Duration(milliseconds: 1500));
+    
+    final userData = await AuthService.init();
+    if (!mounted) return;
+    
+    if (userData != null) {
+      Provider.of<AppState>(context, listen: false).setUserData(userData);
+      Navigator.pushReplacementNamed(context, '/main_frame');
+    } else {
+      Navigator.pushReplacementNamed(context, '/welcome');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.creamBg,
-      body: GestureDetector(
-        onTap: () => Navigator.pushReplacementNamed(context, '/welcome'),
-        behavior: HitTestBehavior.opaque,
-        child: SafeArea(
-          child: Column(
+      body: SafeArea(
+        child: Column(
             children: [
               const Spacer(flex: 3),
               Image.asset(
@@ -78,7 +105,6 @@ class SplashScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

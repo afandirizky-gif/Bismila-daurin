@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../state/app_state.dart';
 import '../theme.dart';
 import 'home_tab.dart';
 import 'profile/profile_tab.dart';
@@ -19,12 +21,16 @@ class MainFrame extends StatefulWidget {
 }
 
 class _MainFrameState extends State<MainFrame> {
-  late int _currentIndex;
-
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialTab;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = Provider.of<AppState>(context, listen: false);
+      appState.fetchDashboardData();
+      appState.fetchChallengesData();
+      appState.fetchReferralData();
+      appState.fetchDepositHistoryApi();
+    });
   }
 
   // Navigation tabs list
@@ -38,9 +44,12 @@ class _MainFrameState extends State<MainFrame> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    final currentIndex = appState.mainTabIndex;
+
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
+        index: currentIndex,
         children: _tabs,
       ),
       bottomNavigationBar: Container(
@@ -54,11 +63,9 @@ class _MainFrameState extends State<MainFrame> {
           ],
         ),
         child: BottomNavigationBar(
-          currentIndex: _currentIndex,
+          currentIndex: currentIndex,
           onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
+            appState.navigateToTab(index);
           },
           type: BottomNavigationBarType.fixed,
           backgroundColor: AppTheme.primaryGreen,

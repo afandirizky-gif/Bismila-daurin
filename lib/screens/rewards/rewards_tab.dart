@@ -236,11 +236,16 @@ class _RewardsTabState extends State<RewardsTab> {
               ),
               const SizedBox(height: 20),
               // Conversion rate note (e.g. 10 points = Rp 100)
-              Center(
-                child: Text(
-                  'Estimasi Saldo: Rp ${((int.tryParse(_pointsController.text) ?? 0) * 10).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.mintGreen, fontSize: 16),
-                ),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _pointsController,
+                builder: (context, value, child) {
+                  return Center(
+                    child: Text(
+                      'Estimasi Saldo: Rp ${((int.tryParse(value.text) ?? 0) * 10).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.mintGreen, fontSize: 16),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -251,8 +256,34 @@ class _RewardsTabState extends State<RewardsTab> {
                   } else if (state.totalPoints < entered) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Poin tidak mencukupi')));
                   } else {
-                    state.redeemPoints(entered, _selectedWallet);
-                    _showRedeemDialog(state, entered, _selectedWallet);
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        backgroundColor: Colors.white,
+                        title: const Text('Konfirmasi Penukaran', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                        content: Text('Apakah Anda yakin ingin menukar $entered poin ke saldo $_selectedWallet?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Batal', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              Navigator.pop(ctx);
+                              final success = await state.redeemPointsApi(entered, _selectedWallet);
+                              if (success) {
+                                _showRedeemDialog(state, entered, _selectedWallet);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Penukaran poin gagal, coba lagi nanti.')));
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+                            child: const Text('Tukar'),
+                          ),
+                        ],
+                      ),
+                    );
                   }
                 },
                 child: const Text('Tukar'),
@@ -423,9 +454,23 @@ class _RewardsTabState extends State<RewardsTab> {
           style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen, fontSize: 15),
         ),
         const SizedBox(height: 12),
-        _invitedRow('Ahmad Rizky', '20 Mar 2025', '+200'),
-        _invitedRow('Siti Nurhaliza', '15 Mar 2025', '+200'),
-        _invitedRow('Budi Santoso', '10 Mar 2025', '+200'),
+        if (state.referralFriends.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Center(child: Text('Belum ada teman yang diajak', style: TextStyle(color: AppTheme.textLight))),
+          )
+        else
+          ...state.referralFriends.map((f) {
+            String dateStr = '';
+            try {
+              final date = DateTime.parse(f['joinedAt']);
+              final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+              dateStr = '${date.day} ${months[date.month - 1]} ${date.year}';
+            } catch (e) {
+              dateStr = f['joinedAt'] ?? '';
+            }
+            return _invitedRow(f['name'] ?? 'Anonim', dateStr, '+${f['bonusPoints']}');
+          }),
         const SizedBox(height: 24),
       ],
     );

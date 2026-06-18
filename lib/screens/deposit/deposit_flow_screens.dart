@@ -36,65 +36,12 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
   // New pickup scheduler fields
   DateTime? _selectedDate;
   String? _selectedTimeSlot;
+  String? _selectedCategory;
   final TextEditingController _weightController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-  final List<String> _timeSlots = [
-    '09:00 - 12:00',
-    '13:00 - 16:00',
-    '16:00 - 19:00'
-  ];
-  late TabController _tabController;
-
-  // Definisikan dropPoints di sini agar bisa diakses seluruh file
-  List<Map<String, dynamic>> dropPoints = [
-    {
-      'name': 'EcoHub Batam Center',
-      'lat': 1.1275,
-      'lng': 104.0417,
-      'address': 'Jl. Engku Putri No. 15',
-      'distance': '0.8 km',
-      'rating': '4.8',
-      'hours': '08:00 - 20:00',
-      'status': 'Buka',
-      'eta': '3 min',
-      'points': '+150 pts',
-    },
-    {
-      'name': 'Recycle Station Harbour Bay',
-      'lat': 1.1350,
-      'lng': 104.0200,
-      'address': 'Harbour Bay Residences',
-      'distance': '2.5 km',
-      'rating': '4.9',
-      'hours': '10:00 - 18:00',
-      'status': 'Tutup',
-      'eta': '8 min',
-      'points': '+200 pts',
-    },
-    {
-      'name': 'EcoHub Medan Baru',
-      'lat': 3.5852,
-      'lng': 98.6756,
-      'address': 'Jl. Gajah Mada No. 10, Medan',
-      'distance': '105.2 km',
-      'rating': '4.7',
-      'hours': '09:00 - 17:00',
-      'status': 'Buka',
-      'eta': '4 jam',
-      'points': '+180 pts',
-    },
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(
-      initialIndex: widget.initialTabIndex,
-      length: 2,
-      vsync: this,
-    );
-  }
+  final List<String> _timeSlots = ['09:00 - 12:00', '13:00 - 16:00', '16:00 - 19:00'];
+  final List<String> _categories = ['Plastic', 'Paper', 'Metal', 'Glass'];
 
   @override
   void dispose() {
@@ -107,6 +54,7 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
   void _resetForm() {
     _selectedDate = null;
     _selectedTimeSlot = null;
+    _selectedCategory = null;
     _weightController.clear();
     _addressController.clear();
   }
@@ -114,6 +62,18 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    
+    // Check if there is an external request to change the view
+    if (appState.targetDepositViewIndex != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _viewIndex = appState.targetDepositViewIndex!;
+          });
+          appState.clearTargetDepositView();
+        }
+      });
+    }
 
     return Scaffold(
       backgroundColor: AppTheme.creamBg,
@@ -234,47 +194,58 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
           ],
         ),
         const SizedBox(height: 16),
-        Row(
-          children: state.recentDeposits.map((item) {
-            return Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade100),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      item.type,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: _getTrashColor(item.type),
-                        fontSize: 12,
-                      ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            int maxPerRow = constraints.maxWidth > 500 ? 5 : 3;
+            int crossAxisCount = state.recentDeposits.length < maxPerRow ? state.recentDeposits.length : maxPerRow;
+            if (crossAxisCount == 0) crossAxisCount = 1;
+            
+            final double spacing = 8.0;
+            final itemWidth = (constraints.maxWidth - ((crossAxisCount - 1) * spacing)) / crossAxisCount;
+
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: state.recentDeposits.map((item) {
+                return SizedBox(
+                  width: itemWidth,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: Colors.grey.shade100),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${item.weight} kg',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: AppTheme.primaryGreen),
+                    child: Column(
+                      children: [
+                        Text(
+                          item.type,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            color: _getTrashColor(item.type),
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${item.weight} kg',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryGreen),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.relativeTime,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppTheme.textLight, fontSize: 10),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      item.relativeTime,
-                      style: const TextStyle(
-                          color: AppTheme.textLight, fontSize: 10),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              }).toList(),
             );
-          }).toList(),
+          }
         ),
         const SizedBox(height: 40),
         Center(
@@ -792,18 +763,17 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded,
-                          color: Colors.red),
-                      onPressed: () {
-                        state.cancelPickup(pickup.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Jadwal penjemputan berhasil dibatalkan.')),
-                        );
-                        setState(() {
-                          _viewIndex = 0;
-                        });
+                      icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                      onPressed: () async {
+                        final success = await state.cancelPickupApi(pickup.id);
+                        if (success) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Jadwal penjemputan berhasil dibatalkan.')),
+                          );
+                          setState(() {
+                            _viewIndex = 0;
+                          });
+                        }
                       },
                     ),
                   ],
@@ -820,13 +790,33 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
                 const Divider(height: 24),
 
                 // Estimated weight
-                _detailRow(Icons.shopping_bag_rounded, 'Estimasi Berat',
-                    '${pickup.estimatedWeight} kg'),
-                const SizedBox(height: 24),
-
+                _detailRow(Icons.shopping_bag_rounded, 'Estimasi Berat', '${pickup.estimatedWeight} kg'),
+                // Simulasi Selesaikan Penjemputan Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
+                    onPressed: () async {
+                      final success = await state.verifyPickupApi(pickup.id);
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Penjemputan diselesaikan! Poin bertambah.')),
+                        );
+                        setState(() {
+                          _viewIndex = 0;
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentGold,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Simulasi Selesaikan Penjemputan'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
                     onPressed: () {
                       // Pre-populate form to modify
                       _selectedDate = pickup.date;
@@ -941,6 +931,23 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
           ),
           const SizedBox(height: 16),
 
+          // Category
+          _formLabel('Jenis Sampah'),
+          DropdownButtonFormField<String>(
+            value: _selectedCategory,
+            hint: const Text('Pilih Kategori Sampah'),
+            decoration: _inputDecoration(''),
+            items: _categories.map((cat) {
+              return DropdownMenuItem(value: cat, child: Text(cat));
+            }).toList(),
+            onChanged: (val) {
+              setState(() {
+                _selectedCategory = val;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+
           // Weight
           _formLabel('Estimasi Berat (kg)'),
           TextFormField(
@@ -968,11 +975,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
 
           // Confirm Button
           ElevatedButton(
-            onPressed: () {
-              if (_selectedDate == null ||
-                  _selectedTimeSlot == null ||
-                  _weightController.text.isEmpty ||
-                  _addressController.text.isEmpty) {
+            onPressed: () async {
+              if (_selectedDate == null || _selectedTimeSlot == null || _selectedCategory == null || _weightController.text.isEmpty || _addressController.text.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                       content: Text('Mohon isi semua data formulir')),
@@ -981,21 +985,26 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
               }
 
               final weight = double.tryParse(_weightController.text) ?? 5.0;
-              state.schedulePickup(
+              final success = await state.schedulePickupApi(
                 _selectedDate!,
                 _selectedTimeSlot!,
                 _addressController.text,
                 weight,
+                _selectedCategory!,
               );
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Jadwal penjemputan berhasil disimpan!')),
-              );
-
-              setState(() {
-                _viewIndex = 3; // Go back to active pickups detailed card view
-              });
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Jadwal penjemputan berhasil disimpan!')),
+                );
+                setState(() {
+                  _viewIndex = 3; // Go back to active pickups detailed card view
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Gagal menyimpan jadwal penjemputan.')),
+                );
+              }
             },
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1178,6 +1187,26 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
                     ),
                   ),
                 ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppTheme.primaryGreen),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onPressed: () => _showDepositDialog(context, Provider.of<AppState>(context, listen: false)),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle_outline_rounded, color: AppTheme.primaryGreen),
+                        SizedBox(width: 10),
+                        Text('Sudah Tiba dan Konfirmasi Drop', style: TextStyle(color: AppTheme.primaryGreen, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -1212,6 +1241,92 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
           ],
         ),
       ),
+    );
+  }
+
+  void _showDepositDialog(BuildContext context, AppState state) {
+    final TextEditingController weightCtrl = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: const Text('Konfirmasi Setoran', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryGreen)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Masukkan estimasi total berat sampah yang disetor (dalam kg):'),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: weightCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Berat (Kg)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      prefixIcon: const Icon(Icons.scale_rounded, color: AppTheme.mintGreen),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                if (!isSubmitting)
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                  ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final wText = weightCtrl.text.trim();
+                          if (wText.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Masukkan berat sampah!')));
+                            return;
+                          }
+                          final w = double.tryParse(wText);
+                          if (w == null || w <= 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Berat tidak valid!')));
+                            return;
+                          }
+
+                          setStateDialog(() {
+                            isSubmitting = true;
+                          });
+
+                          final success = await state.createAndVerifyDepositApi(w);
+
+                          if (context.mounted) {
+                            Navigator.pop(ctx);
+                            if (success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Setoran berhasil dicatat! Poin Anda telah bertambah.'), backgroundColor: AppTheme.mintGreen),
+                              );
+                              setState(() {
+                                _viewIndex = 0; // return to main choice view
+                              });
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Gagal mencatat setoran. Silakan coba lagi.'), backgroundColor: Colors.red),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryGreen),
+                  child: isSubmitting
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Simpan & Selesai', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

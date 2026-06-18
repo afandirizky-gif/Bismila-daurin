@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../theme.dart';
+import '../../services/auth_service.dart';
+import '../../state/app_state.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -177,13 +180,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Login Button
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/main_frame',
-                        (route) => false,
-                      );
+                      final email = _usernameController.text.trim();
+                      final password = _passwordController.text.trim();
+                      
+                      final result = await AuthService.login(email, password);
+                      if (!mounted) return;
+
+                      if (result['success']) {
+                        final user = result['user'];
+                        Provider.of<AppState>(context, listen: false).setUserData(user);
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/main_frame',
+                          (route) => false,
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(result['message'])),
+                        );
+                      }
                     }
                   },
                   child: const Text('Masuk'),

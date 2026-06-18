@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../theme.dart';
 import '../../state/app_state.dart';
+import '../../services/api_service.dart';
 
 class AiScanScreen extends StatefulWidget {
   const AiScanScreen({super.key});
@@ -18,6 +20,9 @@ class _AiScanScreenState extends State<AiScanScreen>
   int _selectedCategoryIndex = 1; // 0: Organik, 1: Anorganik, 2: B3
   late AnimationController _animationController;
   late Animation<double> _scanLineAnimation;
+  
+  bool _isScanning = false;
+  Map<String, dynamic>? _apiResult;
 
   final List<String> _categories = ['Organik', 'Anorganik', 'B3'];
 
@@ -95,6 +100,75 @@ class _AiScanScreenState extends State<AiScanScreen>
     }
   }
 
+  Future<void> _captureAndAnalyze() async {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) return;
+    if (_isScanning) return;
+
+    setState(() {
+      _isScanning = true;
+      _apiResult = null; // reset
+    });
+
+    try {
+      final XFile file = await _cameraController!.takePicture();
+      final response = await ApiService.uploadImageForScan(file.path);
+      
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success'] == true) {
+          final result = body['result'];
+          final predictedClass = result['predicted_class'];
+          final confidence = result['confidence_score'];
+          final desc = result['description'] ?? '';
+          
+          setState(() {
+            _apiResult = {
+              'name': result['predicted_class_id'] ?? predictedClass,
+              'accuracy': '${(confidence * 100).toStringAsFixed(1)}% akurat',
+              'co2': predictedClass == 'Organic' ? '0.1 kg' : '0.3 kg',
+              'points': predictedClass == 'Organic' ? 10 : 50,
+              'instructions': [desc, 'Harap letakkan di tempat yang sesuai.'],
+              'color': predictedClass == 'Organic' ? AppTheme.organicColor : AppTheme.anorganicColor,
+            };
+            
+            // Auto-select tab
+            if (predictedClass == 'Organic') {
+              _selectedCategoryIndex = 0;
+            } else if (predictedClass == 'Recyclable') {
+              _selectedCategoryIndex = 1;
+            }
+          });
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('API Error: ${body['error'] ?? 'Unknown error'}')),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('HTTP Error ${response.statusCode}: ${response.body}')),
+          );
+        }
+        debugPrint('HTTP Error: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      debugPrint("Error capture/analyze: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
+    }
+  }
+
   @override
   void dispose() {
     _cameraController?.dispose();
@@ -105,7 +179,7 @@ class _AiScanScreenState extends State<AiScanScreen>
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
-    final result = _scanResults[_selectedCategoryIndex];
+    final result = _apiResult;
 
     return Scaffold(
       backgroundColor: AppTheme.creamBg,
@@ -185,39 +259,65 @@ class _AiScanScreenState extends State<AiScanScreen>
                     ),
 
                     // Animated scanning line
-                    AnimatedBuilder(
-                      animation: _scanLineAnimation,
-                      builder: (context, child) {
-                        return Positioned(
-                          top: 100 + (_scanLineAnimation.value * 220),
-                          child: Container(
-                            width: 220,
-                            height: 3,
-                            decoration: BoxDecoration(
-                              color: AppTheme.mintGreen,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.mintGreen.withOpacity(0.8),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                )
-                              ],
+                    if (!_isScanning)
+                      AnimatedBuilder(
+                        animation: _scanLineAnimation,
+                        builder: (context, child) {
+                          return Positioned(
+                            top: 100 + (_scanLineAnimation.value * 220),
+                            child: Container(
+                              width: 220,
+                              height: 3,
+                              decoration: BoxDecoration(
+                                color: AppTheme.mintGreen,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.mintGreen.withOpacity(0.8),
+                                    blurRadius: 8,
+                                    spreadRadius: 2,
+                                  )
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    // UI Hint
-                    const Positioned(
-                      bottom: 20,
-                      child: Text(
-                        'Posisikan objek di tengah bingkai',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold),
+                          );
+                        },
                       ),
+
+                    // Capture Button & Loading State
+                    Positioned(
+                      bottom: 20,
+                      child: _isScanning
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Row(
+                                children: [
+                                  SizedBox(
+                                    width: 16, height: 16,
+                                    child: CircularProgressIndicator(color: AppTheme.mintGreen, strokeWidth: 2),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Text(
+                                    'AI sedang menganalisa...',
+                                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : GestureDetector(
+                              onTap: _captureAndAnalyze,
+                              child: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: const BoxDecoration(
+                                  color: AppTheme.primaryGreen,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.camera_alt, color: Colors.white, size: 32),
+                              ),
+                            ),
                     ),
                   ],
                 ),
@@ -276,148 +376,161 @@ class _AiScanScreenState extends State<AiScanScreen>
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // AI Result Title Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'AI Result',
-                                style: TextStyle(
-                                    color: AppTheme.textLight, fontSize: 12),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                result['name'] as String,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                  color: AppTheme.primaryGreen,
-                                  fontFamily: 'Outfit',
+                    children: result == null
+                        ? [
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 40.0),
+                                child: Text(
+                                  'Silakan arahkan kamera ke sampah dan tekan tombol foto untuk menganalisa secara otomatis menggunakan AI.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: AppTheme.textLight, height: 1.5),
                                 ),
                               ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEFF7F2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              result['accuracy'] as String,
-                              style: const TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Impact grid
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppTheme.creamBg.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('CO2 Dicegah',
-                                      style: TextStyle(
-                                          color: AppTheme.textLight,
-                                          fontSize: 11)),
-                                  const SizedBox(height: 4),
-                                  Text(result['co2'] as String,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                          color: AppTheme.primaryGreen)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppTheme.creamBg.withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('Poin Didapat',
-                                      style: TextStyle(
-                                          color: AppTheme.textLight,
-                                          fontSize: 11)),
-                                  const SizedBox(height: 4),
-                                  Text('+${result['points']}',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                          color: Colors.green)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Handling/Steps Section
-                      const Text(
-                        'Cara Penanganan',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppTheme.primaryGreen),
-                      ),
-                      const SizedBox(height: 12),
-                      Column(
-                        children: List.generate(
-                            (result['instructions'] as List).length, (idx) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            )
+                          ]
+                        : [
+                            // AI Result Title Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                CircleAvatar(
-                                  radius: 9,
-                                  backgroundColor: AppTheme.mintGreen,
-                                  child: Text('${idx + 1}',
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'AI Result',
+                                      style: TextStyle(
+                                          color: AppTheme.textLight, fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      result['name'] as String,
                                       style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold)),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: AppTheme.primaryGreen,
+                                        fontFamily: 'Outfit',
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEFF7F2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                   child: Text(
-                                    (result['instructions'] as List)[idx],
+                                    result['accuracy'] as String,
                                     style: const TextStyle(
-                                        fontSize: 12,
-                                        color: AppTheme.textDark,
-                                        height: 1.4),
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11),
                                   ),
                                 ),
                               ],
                             ),
-                          );
-                        }),
-                      ),
-                    ],
+                            const SizedBox(height: 16),
+
+                            // Impact grid
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.creamBg.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text('CO2 Dicegah',
+                                            style: TextStyle(
+                                                color: AppTheme.textLight,
+                                                fontSize: 11)),
+                                        const SizedBox(height: 4),
+                                        Text(result['co2'] as String,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15,
+                                                color: AppTheme.primaryGreen)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.creamBg.withOpacity(0.5),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text('Poin Didapat',
+                                            style: TextStyle(
+                                                color: AppTheme.textLight,
+                                                fontSize: 11)),
+                                        const SizedBox(height: 4),
+                                        Text('+${result['points']}',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 15,
+                                                color: Colors.green)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Handling/Steps Section
+                            const Text(
+                              'Cara Penanganan',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: AppTheme.primaryGreen),
+                            ),
+                            const SizedBox(height: 12),
+                            Column(
+                              children: List.generate(
+                                  (result['instructions'] as List).length, (idx) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 9,
+                                        backgroundColor: AppTheme.mintGreen,
+                                        child: Text('${idx + 1}',
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          (result['instructions'] as List)[idx],
+                                          style: const TextStyle(
+                                              fontSize: 12,
+                                              color: AppTheme.textDark,
+                                              height: 1.4),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ),
+                          ],
                   ),
                 ),
               ),
@@ -432,7 +545,7 @@ class _AiScanScreenState extends State<AiScanScreen>
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ElevatedButton(
-                    onPressed: () {
+                    onPressed: result == null ? null : () {
                       // Save points to State
                       appState.simulateAiScanResult(
                         _categories[_selectedCategoryIndex],
