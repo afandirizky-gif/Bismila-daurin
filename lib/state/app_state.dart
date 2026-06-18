@@ -219,7 +219,7 @@ class AppState extends ChangeNotifier {
       id: 'pickup_1',
       date: DateTime(2026, 3, 31),
       timeSlot: '09:00 - 12:00',
-      address: 'Jl. Melati No. 15, Jakarta Selatan',
+      address: 'Jl. Melati No. 15, medan',
       estimatedWeight: 8.0,
       status: 'Terjadwal',
     )
@@ -319,9 +319,9 @@ class AppState extends ChangeNotifier {
   // Challenge List
   final List<ChallengeItem> _challenges = [
     ChallengeItem(
-      title: 'Bike to Work',
-      description: 'Use bicycle for commute to reduce footprint.',
-      duration: '5 days',
+      title: 'bersepeda ke tempat kerja',
+      description: 'gunakan sepeda untuk pergi ke tempat kerja selama 5 hari berturut-turut.',
+      duration: '5 hari',
       rewardPoints: 400,
       currentProgress: 2,
       totalGoal: 5,
@@ -330,25 +330,25 @@ class AppState extends ChangeNotifier {
     ChallengeItem(
       title: 'Pilah 10 kg Minggu Ini',
       description: 'Pilah sampah daur ulang hingga mencapai 10 kg.',
-      duration: '7 days',
+      duration: '7 hari',
       rewardPoints: 500,
       currentProgress: 7,
       totalGoal: 10,
       isJoined: true, // Featured
     ),
     ChallengeItem(
-      title: 'Zero Single-Use Plastic',
-      description: 'Do not use single use bags or straws.',
-      duration: '3 days',
+      title: 'Nol Plastik Sekali Pakai',
+      description: 'Hindari penggunaan plastik sekali pakai.',
+      duration: '3 hari',
       rewardPoints: 250,
       currentProgress: 0,
       totalGoal: 3,
       isJoined: false,
     ),
     ChallengeItem(
-      title: 'Eco Clean Up Day',
-      description: 'Join community clean up events in your area.',
-      duration: '1 day',
+      title: 'Hari Bersih lingkungan',
+      description: 'Ikuti kegiatan bersih-bersih lingkungan di daerahmu.',
+      duration: '1 hari',
       rewardPoints: 600,
       currentProgress: 1,
       totalGoal: 1,
@@ -356,9 +356,9 @@ class AppState extends ChangeNotifier {
       isCompleted: false,
     ),
     ChallengeItem(
-      title: 'Compost Master',
-      description: 'Compost kitchen scraps for 2 weeks.',
-      duration: '14 days',
+      title: 'Ahli Kompos',
+      description: 'mulai kompos dengan benar selama 14 hari berturut-turut.',
+      duration: '14 hari',
       rewardPoints: 800,
       currentProgress: 14,
       totalGoal: 14,
@@ -411,88 +411,88 @@ class AppState extends ChangeNotifier {
   // Badges list
   final List<BadgeItem> _badges = [
     BadgeItem(
-        title: 'Use a reusable bag',
-        description: 'Bring bags to shopping',
+        title: 'Bawa tas belanja sendiri',
+        description: 'Bawa tas belanja saat berbelanja',
         currentProgress: 5,
         totalGoal: 5,
-        period: 'DAY',
+        period: 'Hari',
         isUnlocked: true),
     BadgeItem(
-        title: 'Bike to work',
-        description: 'Ride bicycle to work',
+        title: 'Bersepeda ke tempat kerja',
+        description: 'Gunakan sepeda untuk pergi ke tempat kerja selama 5 hari berturut-turut.',
         currentProgress: 3,
         totalGoal: 3,
-        period: 'WEEK',
+        period: 'Pekan',
         isUnlocked: true),
     BadgeItem(
-        title: 'Avoid single-use straws',
-        description: 'No plastic straws',
+        title: 'Hindari sedotan plastik',
+        description: 'Tolak sedotan plastik dan gunakan alternatif ramah lingkungan',
         currentProgress: 7,
         totalGoal: 7,
-        period: 'WEEK',
+        period: 'Pekan',
         isUnlocked: true),
     BadgeItem(
-        title: 'Compost food scraps',
-        description: 'Compost composting',
+        title: 'Mulai Kompos sisa makanan',
+        description: 'Buat kompos dari sisa makanan rumah tangga',
         currentProgress: 2,
         totalGoal: 2,
-        period: 'DAY',
+        period: 'Hari',
         isUnlocked: true),
     BadgeItem(
-        title: 'Turn off unused lights',
-        description: 'Save electricity',
+        title: 'Hemat Listrik',
+        description: 'Matikan lampu yang tidak digunakan untuk menghemat Listrik',
         currentProgress: 8,
         totalGoal: 8,
-        period: 'DAY',
+        period: 'Hari',
         isUnlocked: true),
     BadgeItem(
-        title: 'Use refillable water bottle',
-        description: 'Zero plastic bottles',
+        title: 'Gunakan botol air isi ulang',
+        description: 'Gunakan botol air yang bisa diisi ulang ',
         currentProgress: 4,
         totalGoal: 4,
-        period: 'DAY',
+        period: 'Hari',
         isUnlocked: true),
     BadgeItem(
-        title: 'Print double-sided',
-        description: 'Save paper sheets',
+        title: 'Kurangi penggunaan kertas',
+        description: 'Gunakan dokumen digital dan hindari mencetak dokumen yang tidak perlu',
         currentProgress: 6,
         totalGoal: 6,
-        period: 'WEEK',
+        period: 'Pekan',
         isUnlocked: true),
     BadgeItem(
-        title: 'Donate old clothes',
-        description: 'Reuse old outfits',
+        title: 'Gunakan pakaian',
+        description: 'Gunakan pakaian yang ramah lingkungan dan hindari fast fashion',
         currentProgress: 1,
         totalGoal: 1,
-        period: 'MONTH',
+        period: 'Bulan',
         isUnlocked: true),
     BadgeItem(
-        title: 'Buy local produce',
-        description: 'Support local farms',
+        title: 'Dukung pertanian lokal',
+        description: 'Dukung petani lokal',
         currentProgress: 9,
         totalGoal: 9,
-        period: 'WEEK',
+        period: 'Pekan',
         isUnlocked: true),
     BadgeItem(
-        title: 'Avoid plastic utensils',
-        description: 'Use stainless cutlery',
+        title: 'Hindari peralatan makan plastik',
+        description: 'Gunakan peralatan makan dari stainless steel',
         currentProgress: 3,
         totalGoal: 3,
-        period: 'DAY',
+        period: 'Hari',
         isUnlocked: true),
     BadgeItem(
-        title: 'Fix leaky faucets',
-        description: 'Save household water',
+        title: 'Hemat air',
+        description: 'Hindari pemborosan air di rumah',
         currentProgress: 2,
         totalGoal: 2,
-        period: 'MONTH',
+        period: 'Bulan',
         isUnlocked: true),
     BadgeItem(
-        title: 'Use energy-efficient bulbs',
-        description: 'Replace incandescent',
+        title: 'Kurangi penggunaan lampu neon',
+        description: 'Gunakan lampu LED yang lebih hemat energi',
         currentProgress: 5,
         totalGoal: 5,
-        period: 'WEEK',
+        period: 'Pekan',
         isUnlocked: true),
   ];
 
@@ -502,25 +502,25 @@ class AppState extends ChangeNotifier {
   // Leaderboard data
   final List<LeaderboardUser> _leaderboardUsers = [
     LeaderboardUser(
-        name: 'ery', points: 2450, streak: 12, rank: 1, change: '0'),
+        name: 'Irhan', points: 2450, streak: 12, rank: 1, change: '0'),
     LeaderboardUser(
-        name: 'Andi', points: 2120, streak: 8, rank: 2, change: '+10'),
+        name: 'Dance', points: 2120, streak: 8, rank: 2, change: '+10'),
     LeaderboardUser(
-        name: 'gui lee', points: 1890, streak: 15, rank: 3, change: '-5'),
+        name: 'Zahra', points: 1890, streak: 15, rank: 3, change: '-5'),
     LeaderboardUser(
-        name: 'Elara', points: 1820, streak: 7, rank: 4, change: '+60'),
+        name: 'Selvi', points: 1820, streak: 7, rank: 4, change: '+60'),
     LeaderboardUser(
-        name: 'Kian', points: 1740, streak: 6, rank: 5, change: '+60'),
+        name: 'Rizky', points: 1740, streak: 6, rank: 5, change: '+60'),
     LeaderboardUser(
-        name: 'Soren', points: 1680, streak: 5, rank: 6, change: '+60'),
+        name: 'Grace', points: 1680, streak: 5, rank: 6, change: '+60'),
     LeaderboardUser(
-        name: 'Lyra', points: 1600, streak: 4, rank: 7, change: '+60'),
+        name: 'Lutfi', points: 1600, streak: 4, rank: 7, change: '+60'),
     LeaderboardUser(
-        name: 'Orin', points: 1550, streak: 3, rank: 8, change: '+60'),
+        name: 'Dery', points: 1550, streak: 3, rank: 8, change: '+60'),
     LeaderboardUser(
-        name: 'Mirael', points: 1480, streak: 2, rank: 9, change: '+60'),
+        name: 'Kevin', points: 1480, streak: 2, rank: 9, change: '+60'),
     LeaderboardUser(
-        name: 'Zane', points: 1400, streak: 1, rank: 10, change: '+60'),
+        name: 'Akbar', points: 1400, streak: 1, rank: 10, change: '+60'),
   ];
 
   List<LeaderboardUser> get leaderboardUsers => _leaderboardUsers;

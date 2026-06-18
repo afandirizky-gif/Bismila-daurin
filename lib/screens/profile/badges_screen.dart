@@ -22,7 +22,7 @@ class BadgesScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Badges',
+          'Lencana',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -55,7 +55,7 @@ class BadgesScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Collection Progress',
+                            'Koleksi Progress',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -63,7 +63,7 @@ class BadgesScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            'Keep collecting badges!',
+                            'lencana yang sudah kamu kumpulkan!',
                             style:
                                 TextStyle(color: Colors.white70, fontSize: 12),
                           ),
@@ -80,7 +80,7 @@ class BadgesScreen extends StatelessWidget {
                                 fontSize: 24),
                           ),
                           Text(
-                            '${(progressPercent * 100).toInt()}% complete',
+                            '${(progressPercent * 100).toInt()}% terkumpul',
                             style: const TextStyle(
                                 color: Colors.white70, fontSize: 11),
                           ),

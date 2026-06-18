@@ -28,7 +28,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   child: Center(
                     child: Image.asset(
-                      'assets/logo-d.png',
+                      'assets/logo_a.png',
                       width: 180,
                       height: 180,
                       fit: BoxFit.contain,

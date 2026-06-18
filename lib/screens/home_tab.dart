@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../theme.dart';
 import '../state/app_state.dart';
 import 'scan/ai_scan_screen.dart';
+import 'deposit/deposit_flow_screens.dart';
+import 'package:latlong2/latlong.dart';
 
 
 class HomeTab extends StatelessWidget {
@@ -370,9 +372,13 @@ class HomeTab extends StatelessWidget {
               const SizedBox(height: 10),
 
               OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/deposit'); 
-                },
+                                  
+                  onPressed: () {
+                    Navigator.push(
+                      context, 
+                      MaterialPageRoute(builder: (context) => const SetorSampahScreen()),
+                    );
+                  },
                 icon: const Icon(Icons.map_rounded, size: 20),
                 label: const Text('Cari Drop Point Terdekat'),
                 style: OutlinedButton.styleFrom(
@@ -380,13 +386,19 @@ class HomeTab extends StatelessWidget {
                   side: const BorderSide(color: AppTheme.primaryGreen),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  
                 ),
               ),
               const SizedBox(height: 10),
               // Jadwalkan penjemputan button
               OutlinedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SetorSampahScreen(initialTabIndex: 0),
+                    ),
+                  );
+                },
                 icon: const Icon(Icons.calendar_month_rounded, size: 20),
                 label: const Text('Jadwalkan Penjemputan'),
                 style: OutlinedButton.styleFrom(
