@@ -22,6 +22,8 @@ class SetorSampahScreen extends StatefulWidget {
 
 class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProviderStateMixin {
   int _viewIndex = 0;
+  late TabController _tabController;
+  List<dynamic> dropPoints = []; 
   // 0: Choice View (Page 20)
   // 1: Drop Point Map (Page 21)
   // 2: Jemput Calendar (Page 22)
@@ -31,7 +33,8 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
 
   // Selected Drop point holder
   Map<String, dynamic>? _selectedDropPoint;
-  LatLng? _selectedPoint; // Selected point coordinates for map
+  LatLng? _selectedPoint; 
+  // Selected point coordinates for map
 
   // New pickup scheduler fields
   DateTime? _selectedDate;
@@ -42,6 +45,7 @@ class _SetorSampahScreenState extends State<SetorSampahScreen> with TickerProvid
 
   final List<String> _timeSlots = ['09:00 - 12:00', '13:00 - 16:00', '16:00 - 19:00'];
   final List<String> _categories = ['Plastic', 'Paper', 'Metal', 'Glass'];
+
 
   @override
   void dispose() {

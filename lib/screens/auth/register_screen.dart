@@ -222,7 +222,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
           ),
-        ));
+        ),
+        )
+        );
   }
 
   Widget _fieldLabel(String text) {
