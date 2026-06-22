@@ -15,17 +15,20 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
   final List<Map<String, dynamic>> _slides = [
     {
       'title': 'Pilah Sampahmu',
-      'desc': 'Pindai sampah anorganikmu memakai pemindai AI canggih dari kami.',
+      'desc':
+          'Pindai sampah anorganikmu memakai pemindai AI canggih dari kami.',
       'icon': Icons.qr_code_scanner_rounded,
     },
     {
       'title': 'Setor & Kumpulkan Poin',
-      'desc': 'Bawa ke drop point atau minta dijemput kurir. Kumpulkan poin dari berat sampah.',
+      'desc':
+          'Bawa ke drop point atau minta dijemput kurir. Kumpulkan poin dari berat sampah.',
       'icon': Icons.local_shipping_rounded,
     },
     {
       'title': 'Tukar dengan Rewards',
-      'desc': 'Konversi poinmu menjadi saldo e-wallet favorit secara instan dan mudah.',
+      'desc':
+          'Konversi poinmu menjadi saldo e-wallet favorit secara instan dan mudah.',
       'icon': Icons.card_giftcard_rounded,
     },
   ];
@@ -50,9 +53,13 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () {
-                    Navigator.pushNamedAndRemoveUntil(context, '/main_frame', (route) => false);
+                    Navigator.pushNamedAndRemoveUntil(
+                        context, '/main_frame', (route) => false);
                   },
-                  child: const Text('Lewati', style: TextStyle(color: AppTheme.textLight, fontWeight: FontWeight.bold)),
+                  child: const Text('Lewati',
+                      style: TextStyle(
+                          color: AppTheme.textLight,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
               const Spacer(flex: 1),
@@ -88,7 +95,7 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                           ),
                         ),
                         const SizedBox(height: 48),
-                        
+
                         // Slide Title
                         Text(
                           slide['title'] as String,
@@ -120,7 +127,7 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                   },
                 ),
               ),
-              
+
               const Spacer(flex: 1),
 
               // Indicators & Button
@@ -137,7 +144,9 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                         width: isActive ? 24 : 8,
                         height: 8,
                         decoration: BoxDecoration(
-                          color: isActive ? AppTheme.primaryGreen : Colors.grey.shade300,
+                          color: isActive
+                              ? AppTheme.primaryGreen
+                              : Colors.grey.shade300,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       );
@@ -154,10 +163,13 @@ class _OnboardingScreensState extends State<OnboardingScreens> {
                           curve: Curves.easeInOut,
                         );
                       } else {
-                        Navigator.pushNamedAndRemoveUntil(context, '/main_frame', (route) => false);
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, '/main_frame', (route) => false);
                       }
                     },
-                    child: Text(_currentPage == _slides.length - 1 ? 'Mulai Sekarang' : 'Lanjut'),
+                    child: Text(_currentPage == _slides.length - 1
+                        ? 'Mulai Sekarang'
+                        : 'Lanjut'),
                   ),
                   const SizedBox(height: 16),
                 ],
